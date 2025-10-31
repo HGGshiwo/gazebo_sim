@@ -1,0 +1,14 @@
+<launch>
+    <rosparam command="load" file="$(find ego_planner)/params/dual_ekf_navsat_example.yaml" />
+    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" respawn="true">
+        <remap from="imu/data" to="/mavros/imu/data" />
+        <remap from="gps/fix" to="/mavros/global_position/global" />
+        <remap from="odometry/filtered" to="/mavros/local_position/odom"/>
+    </node>
+    
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_map">
+        <remap from="odometry/filtered" to="odometry/filtered_map"/>
+    </node>
+
+    <!-- <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom"/> -->
+</launch>

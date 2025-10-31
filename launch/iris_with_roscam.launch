@@ -1,0 +1,26 @@
+<launch>
+  <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find gazebo_sim)/worlds/small_city.world"/>
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro $(find gazebo_sim)/models/iris_with_standoffs/model.urdf" />
+  <!-- 启动joint_state_publisher（可选：带GUI） -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+  <!-- 启动robot_state_publisher -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger" output="screen">
+    <param name="destination_frame" value="map"/>
+    <param name="cloud_destination_topic" value="/points"/>
+    <param name="scan_destination_topic" value="/scan_multi"/>
+    <param name="laserscan_topics" value ="/scan" /> 
+    <param name="angle_min" value="-2.0"/>
+    <param name="angle_max" value="2.0"/>
+    <param name="angle_increment" value="0.0058"/>
+    <param name="scan_time" value="0.0333333"/>
+    <param name="range_min" value="0.30"/>
+    <param name="range_max" value="50.0"/>
+  </node>
+  <!-- <node pkg="gazebo_sim" type="pub_cam_odom.py" name="pub_cam_odom" output="screen"/> -->
+</launch>
