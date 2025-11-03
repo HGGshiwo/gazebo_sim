@@ -37,7 +37,8 @@
           </script>
         </material>
       </visual>
-       <sensor name="lidar_sensor" type="gpu_ray">
+       <!-- <sensor name="lidar_sensor" type="gpu_ray"> -->
+       <sensor name="lidar_sensor" type="ray">
         <pose>0 0 0 0 0 0</pose>
         <visualize>false</visualize>
         <update_rate>20</update_rate>
