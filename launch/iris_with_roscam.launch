@@ -3,7 +3,7 @@
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find gazebo_sim)/worlds/small_city.world"/>
   </include>
-  <param name="robot_description" command="$(find xacro)/xacro $(find gazebo_sim)/models/iris_with_standoffs/model.urdf" />
+  <param name="robot_description" command="$(find xacro)/xacro $(find gazebo_sim)/models/iris_with_standoffs_new/model.urdf" />
   <!-- 启动joint_state_publisher（可选：带GUI） -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
 
