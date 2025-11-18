@@ -3,6 +3,10 @@
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find gazebo_sim)/worlds/small_city.world"/>
   </include>
+  
+  <node name="spawn_model" pkg="gazebo_ros" type="spawn_model"
+      args="-file $(find gazebo_sim)/models/ros_iris_with_ardupilot/model.sdf -sdf -model iris -x -10 -y -10 -z 0.2"/>
+
   <param name="robot_description" command="$(find xacro)/xacro $(find gazebo_sim)/models/iris_with_standoffs_new/model.urdf" />
   <!-- 启动joint_state_publisher（可选：带GUI） -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
@@ -22,5 +26,16 @@
     <param name="range_min" value="0.30"/>
     <param name="range_max" value="50.0"/>
   </node>
+
+  <group ns="ugv_0">
+    <param name="robot_description"
+            command="xacro $(find gazebo_sim)/urdf/catvehicle.xacro roboname:='ugv_0'" />
+    <include file="$(find catvehicle)/launch/catvehicle.launch">
+        <arg name="robot_name" value="ugv_0"/>
+        <arg name="init_pose" value="-x -15 -y -10 -z 0 -R 0 -P 0 -Y 0"/>
+        <arg name="config_file" value="catvehicle_control.yaml"/>
+        <arg name="obstaclestopper" value="false"/>
+    </include>
+  </group>
   <!-- <node pkg="gazebo_sim" type="pub_cam_odom.py" name="pub_cam_odom" output="screen"/> -->
 </launch>
