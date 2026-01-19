@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <!-- 地面平面 -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <!-- 阳光 -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- 使用STL模型 -->
+    <model name="外场演示动画模型_STL">
+      <pose>0 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>model://stl_model_package/外场演示动画.stl</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>model://stl_model_package/外场演示动画.stl</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>
