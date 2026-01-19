@@ -26,7 +26,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="file:///home/hgg/Fast-Drone-250/src/ardupilot_gazebo_roscam/src/ardupilot_gazebo/models/iris_with_standoffs/meshes/iris.dae"/>
+        <mesh filename="file:///home/hggshiwo/catkin_ws/src/gazebo_sim/models/iris_with_standoffs_new/meshes/iris.dae"/>
       </geometry>
       <material name="Gazebo/DarkGrey"/>
     </visual>
@@ -100,7 +100,7 @@
     <visual>
       <origin rpy="0 -0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///home/hgg/Fast-Drone-250/src/ardupilot_gazebo_roscam/src/ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_ccw.dae" scale="1 1 1"/>
+        <mesh filename="file:///home/hggshiwo/catkin_ws/src/gazebo_sim/models/iris_with_standoffs_new/meshes/iris_prop_ccw.dae" scale="1 1 1"/>
       </geometry>
       <material name="Gazebo/Blue"/>
     </visual>
@@ -123,7 +123,7 @@
     <visual>
       <origin rpy="0 -0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///home/hgg/Fast-Drone-250/src/ardupilot_gazebo_roscam/src/ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_ccw.dae" scale="1 1 1"/>
+        <mesh filename="file:///home/hggshiwo/catkin_ws/src/gazebo_sim/models/iris_with_standoffs_new/meshes/iris_prop_ccw.dae" scale="1 1 1"/>
       </geometry>
       <material name="Gazebo/DarkGrey"/>
     </visual>
@@ -146,7 +146,7 @@
     <visual>
       <origin rpy="0 -0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///home/hgg/Fast-Drone-250/src/ardupilot_gazebo_roscam/src/ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_cw.dae" scale="1 1 1"/>
+        <mesh filename="file:///home/hggshiwo/catkin_ws/src/gazebo_sim/models/iris_with_standoffs_new/meshes/iris_prop_cw.dae" scale="1 1 1"/>
       </geometry>
       <material name="Gazebo/Blue"/>
     </visual>
@@ -169,7 +169,7 @@
     <visual>
       <origin rpy="0 -0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///home/hgg/Fast-Drone-250/src/ardupilot_gazebo_roscam/src/ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_cw.dae" scale="1 1 1"/>
+        <mesh filename="file:///home/hggshiwo/catkin_ws/src/gazebo_sim/models/iris_with_standoffs_new/meshes/iris_prop_cw.dae" scale="1 1 1"/>
       </geometry>
       <material name="Gazebo/DarkGrey"/>
     </visual>
