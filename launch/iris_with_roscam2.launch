@@ -10,6 +10,21 @@
 
   <!-- 启动robot_state_publisher -->
   <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> -->
+  <node name="pcl_manager" pkg="nodelet" type="nodelet" args="manager" output="screen"/>
+  <node name="rs2base_link_transform" 
+      pkg="nodelet" 
+      type="nodelet" 
+      args="load pcl/PassThrough pcl_manager"
+      output="screen">
+    <param name="input_frame" value="realsense" />
+    <param name="output_frame" value="map" />
+    <param name="filter_limit_max" value="1000" />
+    <param name="filter_limit_min" value="-1000" />
+    
+    <remap from="~input" to="/d435/depth/color/points" />
+    <remap from="~output" to="/points2" />
+    
+  </node>
 
   <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger" output="screen">
     <param name="destination_frame" value="map"/>
