@@ -1,0 +1,161 @@
+<?xml version='1.0'?>
+<!-- 根节点：声明XACRO命名空间，机器人名称可结合前缀动态生成 -->
+<robot name="gimbal_small_2d_new" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- ==================== 定义XACRO宏：封装云台模型，带前缀参数避免命名冲突 ==================== -->
+  <!-- 宏名称：gimbal_small_2d_model，前缀参数prefix（带默认值，方便直接调用） -->
+  <xacro:macro name="gimbal_small_2d_model" params="prefix  xyz='0 0 0' rpy='0 0 0'">
+
+    <!-- ==================== 1. base_link 定义（添加前缀，避免冲突） ==================== -->
+    <link name="${prefix}base_link">
+      <!-- 惯性参数：SDF → XACRO/URDF 格式转换（保留原有参数） -->
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.2"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+
+      <!-- 视觉模型：base_main_viz（添加前缀确保多实例无冲突，修正material语法） -->
+      <visual name="${prefix}base_main_viz">
+        <origin xyz="${xyz}" rpy="${rpy}"/> <!-- 应用拆分后的pose参数 -->
+        <geometry>
+          <mesh filename="model://gimbal_small_2d/meshes/base_main.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <!-- 修正1：给material添加自身必填的name属性（唯一标识，结合前缀避免冲突） -->
+        <!-- 修正2：URDF原生格式，添加color占位，Gazebo材质通过后续gazebo标签映射 -->
+        <material name="${prefix}gimbal_flat_black">
+          <color rgba="0 0 0 1"/> <!-- 纯黑占位，Gazebo中会被FlatBlack覆盖 -->
+        </material>
+      </visual>
+
+      <!-- 视觉模型：base_arm_viz（同上述material修正） -->
+      <visual name="${prefix}base_arm_viz">
+        <origin xyz="${xyz}" rpy="${rpy}"/> <!-- 应用拆分后的pose参数 -->
+        <geometry>
+          <mesh filename="model://gimbal_small_2d/meshes/base_arm.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="${prefix}gimbal_flat_black">
+          <color rgba="0 0 0 1"/>
+        </material>
+      </visual>
+
+      <!-- 碰撞模型：base_col（保留原有参数，姿态不变） -->
+      <collision name="${prefix}base_col">
+        <origin xyz="0.01 0.075 -0.025" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.05 0.15"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- base_link Gazebo 专属配置：1. 摩擦属性 2. 映射Gazebo预定义材质（解决script节点不兼容） -->
+    <gazebo reference="${prefix}base_link">
+      <surface>
+        <friction>
+          <ode>
+            <mu>1</mu>
+            <mu2>1</mu2>
+            <fdir1>0 0 0</fdir1>
+            <slip1>0</slip1>
+            <slip2>0</slip2>
+          </ode>
+        </friction>
+      </surface>
+      <!-- 修正3：通过gazebo标签映射预定义材质，替代URDF中不支持的<script>节点 -->
+      <material>Gazebo/FlatBlack</material>
+    </gazebo>
+
+    <!-- ==================== 2. tilt_link 定义（添加前缀，避免冲突） ==================== -->
+    <link name="${prefix}tilt_link">
+      <!-- 惯性参数（保留原有参数） -->
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.01"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+      </inertial>
+
+      <!-- 视觉模型：tilt_viz（material语法修正） -->
+      <visual name="${prefix}tilt_viz">
+        <origin xyz="0 0 -0.005" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="model://gimbal_small_2d/meshes/tilt.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="${prefix}gimbal_grey">
+          <color rgba="0.5 0.5 0.5 1"/> <!-- 灰色占位，Gazebo中会被Grey覆盖 -->
+        </material>
+      </visual>
+
+      <!-- 碰撞模型：tilt_col（保留原有参数） -->
+      <collision name="${prefix}tilt_col">
+        <origin xyz="0 0 -0.005" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="model://gimbal_small_2d/meshes/tilt.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+      </collision>
+
+      <!-- 视觉模型：camera_viz（material语法修正） -->
+      <visual name="${prefix}camera_viz">
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.025" length="0.050"/>
+        </geometry>
+        <material name="${prefix}gimbal_grey">
+          <color rgba="0.5 0.5 0.5 1"/>
+        </material>
+      </visual>
+
+      <!-- 碰撞模型：camera_col（保留原有参数） -->
+      <collision name="${prefix}camera_col">
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.025" length="0.050"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- tilt_link Gazebo 专属配置：1. 相机传感器 2. 映射Gazebo预定义材质 -->
+    <gazebo reference="${prefix}tilt_link">
+      <!-- 保留原有相机传感器配置，名称带前缀避免冲突 -->
+      <sensor name="${prefix}camera" type="camera">
+        <pose>0 0 0 -1.57 -1.57 0</pose>
+        <camera>
+          <horizontal_fov>2.0</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>15000</far>
+          </clip>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>10</update_rate>
+        <visualize>1</visualize>
+      </sensor>
+      <!-- 映射Gazebo预定义灰色材质 -->
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
+    <!-- ==================== 3. tilt_joint 定义（旋转关节，添加前缀，避免冲突） ==================== -->
+    <joint name="${prefix}tilt_joint" type="revolute">
+      <!-- 父/子link引用带前缀的名称，确保关节关联正确 -->
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}tilt_link"/>
+
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="0.5"/>
+      <limit lower="-0.1" upper="3.14159265" effort="10" velocity="-1"/>
+    </joint>
+
+    <!-- ==================== 4. 全局 Gazebo 插件配置（插件名称添加前缀，关节参数引用带前缀的关节） ==================== -->
+    <gazebo>
+      <plugin name="${prefix}gimbal_small_2d" filename="libGimbalSmall2dPlugin.so">
+        <joint>${prefix}tilt_joint</joint>
+      </plugin>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

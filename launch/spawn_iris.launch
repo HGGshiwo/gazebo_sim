@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="model_name" />
+  <arg name="x" default="-10" />
+  <arg name="y" default="-10" />
+  <arg name="z" default="0.2" />
+  
+  <!-- <param name="robot_description" command="$(find xacro)/xacro $(find gazebo_sim)/urdf/iris_ardupilot_sensor.xacro" /> -->
+
+  <param name="robot_description2" command="$(find xacro)/xacro $(find gazebo_sim)/urdf/iris.xacro" />
+
+  <!-- <node name="spawn_model" pkg="gazebo_ros" type="spawn_model"
+      args="-file $(find gazebo_sim)/urdf/iris_ardupilot_sensor.xacro -sdf -model ${iris_demo} -x -10 -y -10 -z 0.2"/> -->
+  <node  name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file /home/hggshiwo/catkin_ws/src/gazebo_sim/models/iris_with_standoffs_new/model.urdf -urdf -model $(arg model_name) -x $(arg x) -y $(arg y) -z $(arg z)" />
+
+</launch>
+  

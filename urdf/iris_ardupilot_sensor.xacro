@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!-- 声明XACRO命名空间，保持机器人名称不变 -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="iris_ardupilot_sensor">
+    <!-- 1. 保留原有XACRO文件包含，路径不变 -->
+    <xacro:include filename="$(find gazebo_sim)/urdf/iris_ardupilot.xacro" />
+    <xacro:include filename="$(find gazebo_sim)/urdf/gimbal_small_2d.xacro" />
+
+    <!-- 2. 完善XACRO参数定义，保留默认值，确保参数可复用 -->
+    <xacro:arg name="gimbal_prefix" default="gimbal_" />
+    <xacro:arg name="iris_prefix" default="iris_" />
+    <xacro:arg name="model_name" default="iris" /> <!-- 必填参数，无默认值，保持原有要求 -->
+    
+    <xacro:property name="gimbal_prefix" value="$(arg gimbal_prefix)" />
+    <xacro:property name="iris_prefix" value="$(arg iris_prefix)" />
+    <xacro:property name="model_name" value="$(arg model_name)" />
+
+    <!-- 新增可选参数，提升XACRO复用性（纯XACRO最佳实践，保留原默认值） -->
+    <xacro:arg name="lidar_link_name" default="lidar_link" />
+    <xacro:arg name="xyz" default="0.1 0 0.2" />
+    <xacro:arg name="rpy" default="0 0 0" />
+    <xacro:arg name="scan_topic" default="/scan" />
+
+    <xacro:property name="lidar_link_name" value="$(arg lidar_link_name)" />
+    <xacro:property name="xyz" value="$(arg xyz)" />
+    <xacro:property name="rpy" value="$(arg rpy)" />
+    
+    <xacro:property name="scan_topic" value="$(arg scan_topic)" />
+
+    <!-- 3. 修正原代码未闭合的XACRO宏调用标签（关键语法错误修复） -->
+    <xacro:gimbal_small_2d_model prefix="${gimbal_prefix}" xyz="0 -0.01 0.070" rpy="1.57 0 1.57"/>
+    <xacro:iris_ardupilot iris_prefix="${iris_prefix}" model_name="${model_name}" />
+
+    <!-- 4. 链路定义：使用XACRO参数化引用，替换硬编码 -->
+    <link name="${lidar_link_name}">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.0001"/>  
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/> 
+      </inertial>
+
+      <collision name="front_camera_collision">
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <geometry>
+          <box size="0.02 0.02 0.02"/>  
+        </geometry>
+      </collision>
+
+      <visual name="front_camera_visual">
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <geometry>
+          <box size="0.02 0.02 0.02"/> 
+        </geometry>
+        <material name="${lidar_link_name}_red">
+          <color rgba="1 0 0 1"/> 
+        </material>
+      </visual>
+    </link>
+
+    <!-- 激光雷达传感器配置：包裹在gazebo标签内，适配Gazebo扩展语法 -->
+    <gazebo reference="${lidar_link_name}">
+      <material>Gazebo/Red</material>
+      <sensor name="lidar_sensor" type="ray">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>false</visualize>
+        <update_rate>20</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14</min_angle>
+              <max_angle>3.14</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>21</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.2618</min_angle>
+              <max_angle>0.2618</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>10.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </ray>
+        <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_laser.so">
+          <topicName>${scan_topic}</topicName> <!-- 参数化话题名称，提升复用性 -->
+          <frameName>${lidar_link_name}</frameName> <!-- 移除多余/，使用参数化链路名称 -->
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <!-- 5. 关节定义：使用XACRO参数化前缀，替换硬编码的模型链接 -->
+    <joint name="front_camera_joint" type="fixed">
+      <parent>${iris_prefix}base_link</parent> 
+      <child>${lidar_link_name}</child> 
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="iris_gimbal_mount" type="revolute">
+      <parent>${iris_prefix}base_link</parent>
+      <child>${gimbal_prefix}base_link</child> 
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="0" upper="0" effort="0" velocity="0"/>
+      <use_parent_model_frame>true</use_parent_model_frame>
+    </joint>
+
+</robot>

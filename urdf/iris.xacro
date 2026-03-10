@@ -1,0 +1,311 @@
+<?xml version='1.0'?>
+<!-- 根节点：指定机器人名称和 XACRO 命名空间 -->
+<robot name="iris" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- ==================== 定义XACRO宏：封装iris无人机模型，带前缀参数避免命名冲突 ==================== -->
+  <!-- 宏名称：iris_drone_model，前缀参数prefix（带默认值${iris_}，方便直接调用且符合命名规范） -->
+  <xacro:macro name="iris_drone_model" params="prefix">
+
+    <!-- ==================== 3. base_link 定义（添加前缀，避免全局冲突） ==================== -->
+    <link name="${prefix}base_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="1.5"/>
+        <inertia ixx="0.008" ixy="0" ixz="0" iyy="0.015" iyz="0" izz="0.017"/>
+      </inertial>
+
+      <collision name="${prefix}base_link_collision">
+        <origin xyz="0 0 -0.08" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.47 0.47 0.23"/>
+        </geometry>
+      </collision>
+
+      <visual name="${prefix}base_link_visual">
+        <geometry>
+          <mesh filename="model://iris_with_standoffs/meshes/iris.dae" scale="1 1 1"/>
+        </geometry>
+        <!-- 修正1：给material添加必填name属性，结合前缀避免冲突 -->
+        <material name="${prefix}dark_grey">
+          <color rgba="0.2 0.2 0.2 1"/> <!-- 近似DarkGrey的占位色，Gazebo中会被覆盖 -->
+        </material>
+      </visual>
+
+      <!-- 四条腿视觉模型（添加前缀确保多实例无冲突，修正material语法） -->
+      <visual name="${prefix}front_left_leg_visual">
+        <origin xyz="0.123 0.22 -0.11" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.005" length="0.17"/>
+        </geometry>
+        <material name="${prefix}flat_black">
+          <color rgba="0 0 0 1"/> <!-- 近似FlatBlack的占位色，Gazebo中会被覆盖 -->
+        </material>
+      </visual>
+
+      <visual name="${prefix}front_right_leg_visual">
+        <origin xyz="0.123 -0.22 -0.11" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.005" length="0.17"/>
+        </geometry>
+        <material name="${prefix}flat_black">
+          <color rgba="0 0 0 1"/>
+        </material>
+      </visual>
+
+      <visual name="${prefix}rear_left_leg_visual">
+        <origin xyz="-0.140 0.21 -0.11" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.005" length="0.17"/>
+        </geometry>
+        <material name="${prefix}flat_black">
+          <color rgba="0 0 0 1"/>
+        </material>
+      </visual>
+
+      <visual name="${prefix}rear_right_leg_visual">
+        <origin xyz="-0.140 -0.21 -0.11" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.005" length="0.17"/>
+        </geometry>
+        <material name="${prefix}flat_black">
+          <color rgba="0 0 0 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <!-- 修正2：将base_link的Gazebo配置移出<link>节点（URDF不支持link内嵌套gazebo标签） -->
+    <gazebo reference="${prefix}base_link">
+      <surface>
+        <contact>
+          <ode>
+            <max_vel>100.0</max_vel>
+            <min_depth>0.001</min_depth>
+          </ode>
+        </contact>
+        <friction>
+          <ode>
+            <mu>1000.0</mu>
+            <mu2>1000.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+      <!-- 映射Gazebo预定义材质，替代原<link>内的<script>节点 -->
+      <material>Gazebo/DarkGrey</material>
+    </gazebo>
+
+    <!-- ==================== 4. 里程计地面真值链接（添加前缀，保留原有层级命名，修正URDF语法） ==================== -->
+    <link name="${prefix}iris/ground_truth/odometry_sensorgt_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.15"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}iris/ground_truth/odometry_sensorgt_joint" type="revolute">
+      <!-- 父/子link同步引用带前缀的名称，确保关联正确 -->
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}iris/ground_truth/odometry_sensorgt_link"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="0" upper="0" effort="0" velocity="0"/>
+      <dynamics damping="1.0"/>
+    </joint>
+
+    <!-- ==================== 5. IMU 链接（添加前缀，避免传感器和关节命名冲突） ==================== -->
+    <link name="${prefix}iris/imu_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.15"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00002" iyz="0" izz="0.00002"/>
+      </inertial>
+    </link>
+
+    <!-- IMU 传感器 Gazebo 配置（传感器名称添加前缀，reference引用带前缀的IMU link） -->
+    <gazebo reference="${prefix}iris/imu_link">
+      <sensor name="${prefix}imu_sensor" type="imu">
+        <pose>0 0 0 3.141593 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>1000.0</update_rate>
+      </sensor>
+    </gazebo>
+
+    <joint name="${prefix}iris/imu_joint" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}iris/imu_link"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="0" upper="0" effort="0" velocity="0"/>
+      <dynamics damping="1.0"/>
+    </joint>
+
+    <!-- ==================== 6. 四个旋翼链接（rotor 0~3，添加前缀避免多机旋翼冲突，修正语法） ==================== -->
+    <!-- 旋翼 0 -->
+    <link name="${prefix}rotor_0">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.025"/>
+        <inertia ixx="9.75e-06" ixy="0" ixz="0" iyy="0.000166704" iyz="0" izz="0.000167604"/>
+      </inertial>
+
+      <collision name="${prefix}rotor_0_collision">
+        <origin xyz="0.13 -0.22 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到collision -->
+        <geometry>
+          <cylinder radius="0.1" length="0.005"/>
+        </geometry>
+      </collision>
+
+      <visual name="${prefix}rotor_0_visual">
+        <origin xyz="0.13 -0.22 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到visual，保持姿态 -->
+        <geometry>
+          <mesh filename="model://iris_with_standoffs/meshes/iris_prop_ccw.dae" scale="1 1 1"/>
+        </geometry>
+        <material name="${prefix}blue">
+          <color rgba="0 0 1 1"/> <!-- 近似Blue的占位色，Gazebo中会被覆盖 -->
+        </material>
+      </visual>
+    </link>
+
+    <!-- 旋翼 0 Gazebo 专属配置（reference引用带前缀的rotor_0，映射材质） -->
+    <gazebo reference="${prefix}rotor_0">
+      <gravity>1</gravity>
+      <self_collide>0</self_collide>
+      <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <joint name="${prefix}rotor_0_joint" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}rotor_0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-100" upper="100" effort="100.0" velocity="1000.0"/>
+      <dynamics damping="0.004"/>
+    </joint>
+
+    <!-- 旋翼 1 -->
+    <link name="${prefix}rotor_1">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.025"/>
+        <inertia ixx="9.75e-06" ixy="0" ixz="0" iyy="0.000166704" iyz="0" izz="0.000167604"/>
+      </inertial>
+
+      <collision name="${prefix}rotor_1_collision">
+        <origin xyz="-0.13 0.2 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到collision -->
+        <geometry>
+          <cylinder radius="0.1" length="0.005"/>
+        </geometry>
+      </collision>
+
+      <visual name="${prefix}rotor_1_visual">
+        <origin xyz="-0.13 0.2 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到visual，保持姿态 -->
+        <geometry>
+          <mesh filename="model://iris_with_standoffs/meshes/iris_prop_ccw.dae" scale="1 1 1"/>
+        </geometry>
+        <material name="${prefix}dark_grey">
+          <color rgba="0.2 0.2 0.2 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <gazebo reference="${prefix}rotor_1">
+      <gravity>1</gravity>
+      <self_collide>0</self_collide>
+      <material>Gazebo/DarkGrey</material>
+    </gazebo>
+
+    <joint name="${prefix}rotor_1_joint" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}rotor_1"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-100" upper="100" effort="100.0" velocity="1000.0"/>
+      <dynamics damping="0.004"/>
+    </joint>
+
+    <!-- 旋翼 2 -->
+    <link name="${prefix}rotor_2">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.025"/>
+        <inertia ixx="9.75e-06" ixy="0" ixz="0" iyy="0.000166704" iyz="0" izz="0.000167604"/>
+      </inertial>
+
+      <collision name="${prefix}rotor_2_collision">
+        <origin xyz="0.13 0.22 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到collision -->
+        <geometry>
+          <cylinder radius="0.1" length="0.005"/>
+        </geometry>
+      </collision>
+
+      <visual name="${prefix}rotor_2_visual">
+        <origin xyz="0.13 0.22 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到visual，保持姿态 -->
+        <geometry>
+          <mesh filename="model://iris_with_standoffs/meshes/iris_prop_cw.dae" scale="1 1 1"/>
+        </geometry>
+        <material name="${prefix}blue">
+          <color rgba="0 0 1 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <gazebo reference="${prefix}rotor_2">
+      <gravity>1</gravity>
+      <self_collide>0</self_collide>
+      <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <joint name="${prefix}rotor_2_joint" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}rotor_2"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-100" upper="100" effort="100.0" velocity="1000.0"/>
+      <dynamics damping="0.004"/>
+    </joint>
+
+    <!-- 旋翼 3 -->
+    <link name="${prefix}rotor_3">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.025"/>
+        <inertia ixx="9.75e-06" ixy="0" ixz="0" iyy="0.000166704" iyz="0" izz="0.000167604"/>
+      </inertial>
+
+      <collision name="${prefix}rotor_3_collision">
+        <origin xyz="-0.13 -0.2 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到collision -->
+        <geometry>
+          <cylinder radius="0.1" length="0.005"/>
+        </geometry>
+      </collision>
+
+      <visual name="${prefix}rotor_3_visual">
+        <origin xyz="-0.13 -0.2 0.023" rpy="0 0 0"/> <!-- 迁移原link直接origin到visual，保持姿态 -->
+        <geometry>
+          <mesh filename="model://iris_with_standoffs/meshes/iris_prop_cw.dae" scale="1 1 1"/>
+        </geometry>
+        <material name="${prefix}dark_grey">
+          <color rgba="0.2 0.2 0.2 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <gazebo reference="${prefix}rotor_3">
+      <gravity>1</gravity>
+      <self_collide>0</self_collide>
+      <material>Gazebo/DarkGrey</material>
+    </gazebo>
+
+    <joint name="${prefix}rotor_3_joint" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}rotor_3"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-100" upper="100" effort="100.0" velocity="1000.0"/>
+      <dynamics damping="0.004"/>
+    </joint>
+
+    <!-- ==================== 全局 Gazebo 配置（保留原有功能，非命名相关不修改） ==================== -->
+    <gazebo>
+      <static>0</static>  <!-- 非静态模型，允许运动 -->
+    </gazebo>
+
+  </xacro:macro>
+  
+  <xacro:iris_drone_model prefix="iris_prefix" />
+
+</robot>
