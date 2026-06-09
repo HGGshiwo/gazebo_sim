@@ -1,0 +1,88 @@
+<sdf version='1.7'>
+  <world name='default'>
+    <!-- 极简地面（无材质依赖） -->
+    <model name='ground_plane'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.3 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 核心：unit_box（贴地+Z轴翻倍+XY正方向移动） -->
+    <model name='unit_box'>
+      <static>true</static> <!-- 保持固定 -->
+      <!-- 关键修改：Z坐标=3米（Z尺寸6米的一半），底部刚好贴地 -->
+      <pose>10 8 3 0 0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <!-- Z轴尺寸6米（延伸一倍），XY=20×15米 -->
+        <collision name='collision'>
+          <geometry><box><size>20 15 6</size></box></geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>20 15 6</size></box></geometry>
+          <material>
+            <ambient>1 0 0 1</ambient> <!-- 醒目红色 -->
+            <diffuse>1 0 0 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 物理配置 -->
+    <physics type='ode'>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.0</sor>
+        </solver>
+      </ode>
+    </physics>
+
+    <!-- 强光源（无阴影遮挡） -->
+    <light name='sun' type='directional'>
+      <pose>0 0 50 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <direction>0 0 -1</direction>
+      <cast_shadows>0</cast_shadows>
+    </light>
+
+    <!-- 相机对准贴地后的模型 -->
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>35 -12 19 0 0.4 0.785</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+        <clip>
+          <near>0.1</near>
+          <far>1000</far>
+        </clip>
+      </camera>
+    </gui>
+
+    <!-- 高亮度环境 -->
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.8 0.8 0.8 1</background>
+    </scene>
+
+    <gravity>0 0 -9.8</gravity>
+  </world>
+</sdf>
