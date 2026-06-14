@@ -8,53 +8,126 @@ class BaseLayoutStrategy:
         raise NotImplementedError("子类必须实现此方法")
 
 class ProgressiveLayout(BaseLayoutStrategy):
-    """精准高阶版：数学极限压榨 + 0.8比例完美阶梯收缩漏斗"""
+    """榨干白边版：单位统一修正，绝对长度计算"""
     def generate_layout(self, X_size, start_id=0):
-        # 1. 内侧微型星团
-        inner_size = X_size * 0.08
-        inner_dist = X_size * 0.09
+        # 1. 内部星团 (绝对长度)
+        inner_size = X_size * 0.07 
+        inner_dist = X_size * 0.07 
         
-        # 2. 严格按你要求的公式推导外侧阶梯尺寸
-        # 最大尺寸 = 画布一半(0.5) - 中心小标签的尺寸(0.08) = 0.42
-        s1 = (0.5 - 0.08) * X_size  # 0.420 X_size
-        s2 = s1 * 0.8               # 0.336 X_size
-        s3 = s2 * 0.8               # 0.268 X_size (约)
-        s4 = s3 * 0.8               # 0.215 X_size (约)
+        # 内侧最大绝对边界
+        inner_max_edge = inner_dist + (inner_size / 2.0)
         
-        # 3. 核心布局技巧：所有外侧标签的"内边缘"统一紧贴安全边界
-        # 这样最大的标签会自动占满剩下的所有空间并极其靠近中心，
-        # 而较小的标签会因为尺寸小，外侧空出更多距离，形成完美的渐次脱离(FOV漏斗)。
-        safe_margin = inner_size # 0.08 X_size，作为外圈不干扰内圈的安全边界
+        # 2. 外部阵列尺寸 (绝对长度)
+        # 【修正点】画布一半的绝对长度是 0.5 * X_size，用它减去内侧绝对边界
+        s1 = (0.5 * X_size) - inner_max_edge  
         
-        # 中心坐标 = 安全边界 + 自身尺寸的一半
-        cx1 = safe_margin + s1 / 2.0  # 约 0.29 X_size
-        cx2 = safe_margin + s2 / 2.0  # 约 0.248 X_size
-        cx3 = safe_margin + s3 / 2.0  # 约 0.214 X_size
-        cx4 = safe_margin + s4 / 2.0  # 约 0.187 X_size
+        s2 = 0.36 * X_size
+        s3 = 0.32 * X_size
+        s4 = 0.28 * X_size 
+        
+        # 3. 计算中心坐标 (绝对长度)
+        # 外侧标签的中心坐标 = 内部极限边界 + 自身尺寸的一半
+        cx1 = inner_max_edge + s1 / 2.0
+        cx2 = inner_max_edge + s2 / 2.0
+        cx3 = inner_max_edge + s3 / 2.0
+        cx4 = inner_max_edge + s4 / 2.0
 
         return [
-            # ----- 内侧十字星团 (近地盲区保障) -----
+            # ----- 内侧十字星团 -----
             {'id': start_id + 0, 'cx': 0, 'cy': 0, 'size': inner_size},
             {'id': start_id + 1, 'cx': 0, 'cy': -inner_dist, 'size': inner_size},
             {'id': start_id + 2, 'cx': 0, 'cy': inner_dist, 'size': inner_size},
             {'id': start_id + 3, 'cx': -inner_dist, 'cy': 0, 'size': inner_size},
             {'id': start_id + 4, 'cx': inner_dist, 'cy': 0, 'size': inner_size},
             
-            # ----- 外侧 0.8 完美渐进收缩 (顺时针，基于对称轴翻转对应正负) -----
-            
-            # 1级接力 (左上): 最大的标签，内缘贴近中心，外缘刚好顶到画板 0.5 的极限边缘！最先脱离视野。
+            # ----- 外侧高密度阵列 -----
             {'id': start_id + 5, 'cx': -cx1, 'cy': -cx1, 'size': s1},
-            
-            # 2级接力 (右上): 缩减 0.8，向内靠拢
             {'id': start_id + 6, 'cx': cx2, 'cy': -cx2, 'size': s2},
-            
-            # 3级接力 (左下): 继续缩减 0.8
             {'id': start_id + 7, 'cx': -cx3, 'cy': cx3, 'size': s3},
-            
-            # 4级接力 (右下): 最小，不仅贴近中心，且外边缘也是离画板边缘最远的。死死连接内侧星团。
             {'id': start_id + 8, 'cx': cx4, 'cy': cx4, 'size': s4}
         ]
-    
+
+class SupernovaLayout(BaseLayoutStrategy):
+    """超新星17码阵列：三阶接力 + 零缝隙俄罗斯方块堆叠 + 涡轮视场脱离"""
+    def generate_layout(self, X_size, start_id=0):
+        layout = []
+        id_curr = start_id
+
+        # ==========================================
+        # 【第一阶：内核星团】 (保障最后 10cm 贴地盲区)
+        # ==========================================
+        # 1. 中心微型锚点
+        s_core = 0.06 * X_size
+        layout.append({'id': id_curr, 'cx': 0, 'cy': 0, 'size': s_core})
+        id_curr += 1
+
+        # 2. 内侧紧密十字
+        s_inner = 0.08 * X_size
+        d_inner = 0.07 * X_size
+        layout.extend([
+            {'id': id_curr+0, 'cx': d_inner, 'cy': 0, 'size': s_inner},   # E
+            {'id': id_curr+1, 'cx': -d_inner, 'cy': 0, 'size': s_inner},  # W
+            {'id': id_curr+2, 'cx': 0, 'cy': d_inner, 'size': s_inner},   # S
+            {'id': id_curr+3, 'cx': 0, 'cy': -d_inner, 'size': s_inner},  # N
+        ])
+        id_curr += 4
+
+        # ==========================================
+        # 【第二阶：中空齿轮过渡】 (极其巧妙的卡位)
+        # ==========================================
+        # 内侧十字在坐标轴上凸出，但在四个角落留下了完美的方形空隙。
+        # 第一阶的 X/Y 几何边缘刚好都在 0.04 (距中心)。
+        # 我们把第二阶的内角死死顶在这个 (0.04, 0.04) 的坐标上！
+        s_mid = 0.14 * X_size
+        d_mid = 0.11 * X_size  # 中心点 = 0.04 + (0.14 / 2)
+        layout.extend([
+            {'id': id_curr+0, 'cx': d_mid, 'cy': d_mid, 'size': s_mid},   # SE
+            {'id': id_curr+1, 'cx': -d_mid, 'cy': d_mid, 'size': s_mid},  # SW
+            {'id': id_curr+2, 'cx': -d_mid, 'cy': -d_mid, 'size': s_mid}, # NW
+            {'id': id_curr+3, 'cx': d_mid, 'cy': -d_mid, 'size': s_mid},  # NE
+        ])
+        id_curr += 4
+
+        # ==========================================
+        # 【第三阶：高空涡轮护卫】 (极限填充与平滑脱离)
+        # ==========================================
+        # 第二阶的外边缘精准停在了 0.04 + 0.14 = 0.18。
+        # 我们将第三阶所有的 8 个超大标签的内边缘，统一对齐到 0.18！
+        inner_edge = 0.18 * X_size
+
+        # 定义四个不对称的渐进尺寸，形成漏斗效应 (最大达到画板宽度的 32%)
+        sizes = [0.32 * X_size, 0.30 * X_size, 0.28 * X_size, 0.26 * X_size]
+        # 根据内边缘对齐原理，自动反推它们的中心点坐标
+        centers = [inner_edge + s/2.0 for s in sizes]
+
+        # 第一级脱离：东侧组合 (最大的 2 个 Tag，极限高空用)
+        layout.extend([
+            {'id': id_curr+0, 'cx': centers[0], 'cy': 0, 'size': sizes[0]},             # 正东
+            {'id': id_curr+1, 'cx': centers[0], 'cy': centers[0], 'size': sizes[0]},    # 东南角
+        ])
+        id_curr += 2
+
+        # 第二级脱离：南侧组合
+        layout.extend([
+            {'id': id_curr+0, 'cx': 0, 'cy': centers[1], 'size': sizes[1]},             # 正南
+            {'id': id_curr+1, 'cx': -centers[1], 'cy': centers[1], 'size': sizes[1]},   # 西南角
+        ])
+        id_curr += 2
+
+        # 第三级脱离：西侧组合
+        layout.extend([
+            {'id': id_curr+0, 'cx': -centers[2], 'cy': 0, 'size': sizes[2]},            # 正西
+            {'id': id_curr+1, 'cx': -centers[2], 'cy': -centers[2], 'size': sizes[2]},  # 西北角
+        ])
+        id_curr += 2
+
+        # 第四级脱离：北侧组合 (哪怕是最小的一组，边长也占了 26%，充当中低空桥梁)
+        layout.extend([
+            {'id': id_curr+0, 'cx': 0, 'cy': -centers[3], 'size': sizes[3]},            # 正北
+            {'id': id_curr+1, 'cx': centers[3], 'cy': -centers[3], 'size': sizes[3]},   # 东北角
+        ])
+
+        return layout      
         
 class AsymmetricLayout(BaseLayoutStrategy):
     """精准降落防多解：多尺度非对称阵列（极限压榨空间版）"""
@@ -100,3 +173,34 @@ class UniformGridLayout(BaseLayoutStrategy):
                 })
                 current_id += 1
         return layout
+
+class OptimizedLayout(BaseLayoutStrategy):
+    def generate_layout(self, X_size, start_id=0):
+        # 把控制台生成的代码原封不动粘贴到这里
+        inner_size = X_size * 0.0400
+        inner_dist = X_size * 0.0400
+        
+        s1 = 0.4400 * X_size
+        s2 = 0.4200 * X_size
+        s3 = 0.4000 * X_size
+        s4 = 0.3800 * X_size
+        
+        cx1 = 0.2800 * X_size
+        cx2 = 0.2700 * X_size
+        cx3 = 0.2600 * X_size
+        cx4 = 0.2500 * X_size
+
+        return [
+            # 内侧十字
+            {'id': start_id + 0, 'cx': 0, 'cy': 0, 'size': inner_size},
+            {'id': start_id + 1, 'cx': 0, 'cy': -inner_dist, 'size': inner_size},
+            {'id': start_id + 2, 'cx': 0, 'cy': inner_dist, 'size': inner_size},
+            {'id': start_id + 3, 'cx': -inner_dist, 'cy': 0, 'size': inner_size},
+            {'id': start_id + 4, 'cx': inner_dist, 'cy': 0, 'size': inner_size},
+            
+            # 外侧漏斗
+            {'id': start_id + 5, 'cx': -cx1, 'cy': -cx1, 'size': s1},
+            {'id': start_id + 6, 'cx': cx2, 'cy': -cx2, 'size': s2},
+            {'id': start_id + 7, 'cx': -cx3, 'cy': cx3, 'size': s3},
+            {'id': start_id + 8, 'cx': cx4, 'cy': cx4, 'size': s4}
+        ]

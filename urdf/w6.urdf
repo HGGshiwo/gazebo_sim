@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<robot name="autobots_w6">
+
+    <link name="base_footprint" />
+
+    <joint name="base_footprint_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 0.367" rpy="0 0 0" />
+    </joint>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="2.4 1.6 0.6" />
+            </geometry>
+            <material name="green">
+                <color rgba="0.3 0.5 0.3 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="2.4 1.6 0.6" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1500.0" />
+            <inertia ixx="425.0" ixy="0.0" ixz="0.0" iyy="820.0" iyz="0.0" izz="1025.0" />
+        </inertial>
+    </link>
+
+    <link name="front_left_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.367" length="0.235" />
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+    <joint name="front_left_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="front_left_wheel" />
+        <origin xyz="0.82 0.685 0" rpy="-1.5708 0 0" />
+    </joint>
+
+    <link name="front_right_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.367" length="0.235" />
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+    <joint name="front_right_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="front_right_wheel" />
+        <origin xyz="0.82 -0.685 0" rpy="-1.5708 0 0" />
+    </joint>
+
+    <link name="mid_left_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.367" length="0.235" />
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+    <joint name="mid_left_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="mid_left_wheel" />
+        <origin xyz="0 0.685 0" rpy="-1.5708 0 0" />
+    </joint>
+
+    <link name="mid_right_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.367" length="0.235" />
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+    <joint name="mid_right_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="mid_right_wheel" />
+        <origin xyz="0 -0.685 0" rpy="-1.5708 0 0" />
+    </joint>
+
+    <link name="rear_left_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.367" length="0.235" />
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+    <joint name="rear_left_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="rear_left_wheel" />
+        <origin xyz="-0.82 0.685 0" rpy="-1.5708 0 0" />
+    </joint>
+
+    <link name="rear_right_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="0.367" length="0.235" />
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0" />
+            </material>
+        </visual>
+    </link>
+    <joint name="rear_right_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="rear_right_wheel" />
+        <origin xyz="-0.82 -0.685 0" rpy="-1.5708 0 0" />
+    </joint>
+
+    <gazebo>
+        <plugin name="gazebo_ros_planar_move" filename="libgazebo_ros_planar_move.so">
+            <commandTopic>/ugv_0/cmd_vel</commandTopic>
+            <odometryTopic>/ugv_0/odom</odometryTopic>
+
+            <odometryFrame>odom</odometryFrame>
+            <robotBaseFrame>base_footprint</robotBaseFrame>
+
+            <odometryRate>50.0</odometryRate>
+        </plugin>
+    </gazebo>
+    <gazebo>
+        <plugin name="arducopter_plugin" filename="libArduPilotPlugin.so">
+            <fdm_addr>127.0.0.1</fdm_addr>
+            <fdm_port_in>9002</fdm_port_in>
+            <fdm_port_out>9003</fdm_port_out>
+            <!--
+          Require by APM :
+          Only change model and gazebo from XYZ to XY-Z coordinates
+      -->
+            <modelXYZToAirplaneXForwardZDown>0 0 0 3.141593 0 0</modelXYZToAirplaneXForwardZDown>
+            <gazeboXYZToNED>0 0 0 3.141593 0 0</gazeboXYZToNED>
+            <imuName>ugv_0::base_footprint::imu_sensor</imuName>
+            <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+        </plugin>
+    </gazebo>
+
+    <gazebo reference="base_footprint">
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>1000</update_rate>
+            <visualize>true</visualize>
+            <topic>__default_topic__</topic>
+            <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+                <topicName>trunk_imu</topicName>
+                <bodyName>base_link</bodyName>
+                <updateRateHZ>1000.0</updateRateHZ>
+                <gaussianNoise>0.0</gaussianNoise>
+                <xyzOffset>0 0 0</xyzOffset>
+                <rpyOffset>0 0 0</rpyOffset>
+                <frameName>base_link</frameName>
+            </plugin>
+            <pose>0 0 0 3.1415926 0 0</pose>
+        </sensor>
+    </gazebo>
+</robot>   

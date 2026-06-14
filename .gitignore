@@ -1,2 +1,3 @@
 scripts/board/output/*
 __pycache__/
+.tag_cache/
