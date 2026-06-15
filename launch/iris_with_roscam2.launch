@@ -41,24 +41,7 @@
   </node>
 
   <group if="$(eval arg('robot_type') == 'car')">
-    <!-- 启动joint_state_publisher（可选：带GUI） -->
-    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"
-    /> -->
-
-    <!-- 启动robot_state_publisher -->
-    <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
-    /> -->
-
-    <!-- <group ns="ugv_0">
-      <param name="robot_description"
-              command="xacro $(find gazebo_sim)/urdf/catvehicle.xacro roboname:='ugv_0'" />
-      <include file="$(find catvehicle)/launch/catvehicle.launch">
-          <arg name="robot_name" value="ugv_0"/>
-          <arg name="init_pose" value="-x -15 -y -10 -z 0 -R 0 -P 0 -Y 0"/>
-          <arg name="config_file" value="catvehicle_control.yaml"/>
-          <arg name="obstaclestopper" value="false"/>
-      </include>
-    </group> -->
+    <node name="dummy_car" type="dummy_car.py" pkg="gazebo_sim" output="screen" required="true" />
     <node name="spawn_model" pkg="gazebo_ros" type="spawn_model"
       args="-file $(find gazebo_sim)/urdf/w6.urdf -urdf -model ugv_0 -x -10 -y -10 -z 0.2" />
 
