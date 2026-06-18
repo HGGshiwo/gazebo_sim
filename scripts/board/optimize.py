@@ -79,16 +79,16 @@ def layout_optimization():
         s1, s2, s3, s4 = x[2:6]
         cx1, cx2, cx3, cx4 = x[6:10]
         
-        # 计算盲区高度 (假设 60° FOV)
-        inner_max_span = (inner_dist + inner_size / 2.0) * 2
-        blind_spot_ratio = inner_max_span / 1.15
-        
+        blind_spot_ratio = ((inner_dist + inner_size / 2.0) * 2) / 1.15
         print(f"🔹 贴地盲区评估: 在 60° FOV 下，盲区高度被压缩至画板宽度的 {blind_spot_ratio*100:.1f}%")
-        print(f"   (如果打印 1x1 米的画板，无人机下降到离地 {blind_spot_ratio*100:.1f} 厘米时，中心标才会丢失)\n")
+        
+        # 计算跑道参数
+        axis_gap_width = (cx1 - s1/2.0) * 2  # 计算大标挤压后留出的十字通道宽度
+        runway_size = axis_gap_width * 0.75  # 跑道Tag使用通道宽度的75%，留出白边防干扰
 
-        print("将以下代码直接复制到 layouts.py 的 BaseLayoutStrategy 实现中：\n")
+        print("将以下代码直接复制到 layouts.py 中：\n")
         print("-" * 50)
-        print(f"        # 机器优化的绝对极限参数")
+        print(f"        # --- 核心极限参数 ---")
         print(f"        inner_size = X_size * {inner_size:.4f}")
         print(f"        inner_dist = X_size * {inner_dist:.4f}")
         print(f"        ")
@@ -101,6 +101,10 @@ def layout_optimization():
         print(f"        cx2 = {cx2:.4f} * X_size")
         print(f"        cx3 = {cx3:.4f} * X_size")
         print(f"        cx4 = {cx4:.4f} * X_size")
+        print(f"        ")
+        print(f"        # --- 自适应十字引导跑道参数 ---")
+        print(f"        runway_size = {runway_size:.4f} * X_size")
+        print(f"        runway_distances = [0.16 * X_size, 0.28 * X_size, 0.40 * X_size]")
         print("-" * 50)
     else:
         print("❌ 寻优失败，未找到满足所有约束的解。")

@@ -204,3 +204,65 @@ class OptimizedLayout(BaseLayoutStrategy):
             {'id': start_id + 7, 'cx': -cx3, 'cy': cx3, 'size': s3},
             {'id': start_id + 8, 'cx': cx4, 'cy': cx4, 'size': s4}
         ]
+
+class OptimizedRunwayLayout(BaseLayoutStrategy):
+    """16h5字典物理极限适配版：25标双轨短拉链阵列"""
+    def generate_layout(self, X_size, start_id=0):
+        # ==========================================
+        # 1. 核心大标与中心微标 (占用 9 个 ID)
+        # ==========================================
+        inner_size = X_size * 0.0400
+        inner_dist = X_size * 0.0400  # 中心标网格步长
+        
+        s1 = 0.4400 * X_size
+        s2 = 0.4200 * X_size
+        s3 = 0.4000 * X_size
+        s4 = 0.3800 * X_size
+        
+        cx1 = 0.2800 * X_size
+        cx2 = 0.2700 * X_size
+        cx3 = 0.2600 * X_size
+        cx4 = 0.2500 * X_size
+
+        layout = [
+            # ----- 内侧十字星团 (ID: start_id + 0 到 4) -----
+            # 它们占据了距离中心 0 和 0.04 的位置
+            {'id': start_id + 0, 'cx': 0, 'cy': 0, 'size': inner_size},
+            {'id': start_id + 1, 'cx': 0, 'cy': -inner_dist, 'size': inner_size},
+            {'id': start_id + 2, 'cx': 0, 'cy': inner_dist, 'size': inner_size},
+            {'id': start_id + 3, 'cx': -inner_dist, 'cy': 0, 'size': inner_size},
+            {'id': start_id + 4, 'cx': inner_dist, 'cy': 0, 'size': inner_size},
+            
+            # ----- 外侧极限漏斗 (ID: start_id + 5 到 8) -----
+            {'id': start_id + 5, 'cx': -cx1, 'cy': -cx1, 'size': s1},
+            {'id': start_id + 6, 'cx': cx2, 'cy': -cx2, 'size': s2},
+            {'id': start_id + 7, 'cx': -cx3, 'cy': cx3, 'size': s3},
+            {'id': start_id + 8, 'cx': cx4, 'cy': cx4, 'size': s4}
+        ]
+
+        # ==========================================
+        # 2. 无缝延伸刻度线 (单臂 5 标，占用 20 个 ID)
+        # ==========================================
+        runway_size = 0.0400 * X_size
+        
+        # 完美继承中心星团 0.04 的网格步长，零缝隙往外贴合！
+        # 一直铺满到 0.24 的核心视场区
+        distances = [
+            0.0800 * X_size, 
+            0.1200 * X_size, 
+            0.1600 * X_size, 
+            0.2000 * X_size, 
+            0.2400 * X_size
+        ]
+        
+        curr_id = start_id + 9
+        for d in distances:
+            layout.extend([
+                {'id': curr_id+0, 'cx': 0, 'cy': -d, 'size': runway_size},  # 正北通道
+                {'id': curr_id+1, 'cx': 0, 'cy': d, 'size': runway_size},   # 正南通道
+                {'id': curr_id+2, 'cx': -d, 'cy': 0, 'size': runway_size},  # 正西通道
+                {'id': curr_id+3, 'cx': d, 'cy': 0, 'size': runway_size},   # 正东通道
+            ])
+            curr_id += 4
+
+        return layout

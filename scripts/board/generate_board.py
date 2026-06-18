@@ -202,6 +202,7 @@ LAYOUT_MAP = {
     "max": ProgressiveLayout,
     "super": SupernovaLayout,
     "opt": OptimizedLayout,
+    "opt2": OptimizedRunwayLayout,
 }
 
 if __name__ == "__main__":
