@@ -1,0 +1,166 @@
+material nathan_benderson_park/Road
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Road_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Wall
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Wall_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Dock
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Dock_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Concrete
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Concrete_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Railing
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Railing_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/DoorWindow
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture DoorWindow_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Windows
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Window_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Roof
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Roof_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Asphalt
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Asphalt_Albedo.png
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/Trees
+{
+  technique
+  {
+    pass
+    {
+      // 开启透明混合
+      scene_blend alpha_blend
+      // 防止透明物体遮挡透明物体时出现错误的渲染顺序（通常植被渲染建议关闭深度写入，或使用alpha_rejection）
+      depth_write off 
+
+      texture_unit
+      {
+        texture Tree_Albedo.png
+        // 确保纹理的alpha通道被正确应用
+        filtering anisotropic
+        max_anisotropy 8
+      }
+    }
+  }
+}
+
+material nathan_benderson_park/PalmTree
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      texture_unit
+      {
+        texture PalmTree_Albedo.png
+        filtering anisotropic
+        max_anisotropy 8
+      }
+    }
+  }
+}

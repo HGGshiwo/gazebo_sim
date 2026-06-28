@@ -163,6 +163,7 @@ class VcuCanRosBridge:
                             speed_ms = -abs(speed_ms)
                         
                         # 保护性限幅：防止上层下发越界的物理角度
+                        target_angle_val = target_angle_val / 300 * 25
                         clamped_angle_deg = max(min(target_angle_val, 25.0), -25.0)
                         angle_rad = clamped_angle_deg * (math.pi / 180.0)
 

@@ -1,0 +1,74 @@
+<launch>
+  <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+  <arg name="robot_type" default="dog" />
+  <arg name="rviz" default="true" />
+  <arg name="gui" default="true" />
+  <arg name="output" default="screen" />
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find gazebo_sim)/worlds/park.world" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="output" value="$(arg output)" />
+  </include>
+  <node name="spawn_multi" pkg="gazebo_sim" type="spawn_multi.py" output="screen"
+    args="--config $(find gazebo_sim)/config/spawn_drone.yaml" required="true" />
+  <!-- <node name="pcl_manager" pkg="nodelet" type="nodelet" args="manager" output="screen" /> -->
+  <!-- <node name="rs2base_link_transform"
+    pkg="nodelet"
+    type="nodelet"
+    args="load pcl/PassThrough pcl_manager"
+    output="screen">
+    <param name="input_frame" value="realsense" />
+    <param name="output_frame" value="map" />
+    <param name="filter_limit_max" value="1000" />
+    <param name="filter_limit_min" value="-1000" />
+
+    <remap from="~input" to="/d435/depth/color/points" />
+    <remap from="~output" to="/points2" />
+
+  </node>
+
+  <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger"
+    output="screen">
+    <param name="destination_frame" value="map" />
+    <param name="cloud_destination_topic" value="/points" />
+    <param name="scan_destination_topic" value="/scan_multi" />
+    <param name="laserscan_topics" value="/scan" />
+    <param name="angle_min" value="-2.0" />
+    <param name="angle_max" value="2.0" />
+    <param name="angle_increment" value="0.0058" />
+    <param name="scan_time" value="0.0333333" />
+    <param name="range_min" value="0.30" />
+    <param name="range_max" value="50.0" />
+  </node>
+
+  <group if="$(eval arg('robot_type') == 'car')">
+    <node name="dummy_car" type="dummy_car.py" pkg="gazebo_sim" output="screen" required="true" />
+    <node name="spawn_model" pkg="gazebo_ros" type="spawn_model"
+      args="-file $(find gazebo_sim)/urdf/w6.urdf -urdf -model ugv_0 -x -10 -y -10 -z 0.2" />
+
+  </group> -->
+
+  <!-- <group if="$(eval arg('robot_type') == 'drone')">
+    <node name="spawn_model" pkg="gazebo_ros" type="spawn_model"
+      args="-file $(find gazebo_sim)/models/ros_iris_with_ardupilot_realsense/model.sdf -sdf -model
+  iris_demo -x -10 -y -10 -z 0.2" />
+  </group>
+
+  <group if="$(eval arg('robot_type') == 'dog')">
+    <include file="$(find gazebo_sim)/launch/spawn_dog.launch">
+    </include>
+    <node name="dummy_q25" type="dummy_q25.py" pkg="gazebo_sim" output="screen" required="true" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find gazebo_sim)/rviz/dog.rviz"
+      required="true" if="$(arg rviz)" />
+  </group>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="realsense2base_link"
+    args="0 0 0 -1.5708 0 -1.5708 base_link realsense " output="screen" /> -->
+  <!-- 
+  <include file="$(find ros_rtsp)/launch/rtsp_streams.launch">
+  </include> -->
+
+  <!-- <node pkg="gazebo_sim" type="pub_cam_odom.py" name="pub_cam_odom" output="screen"/> -->
+
+</launch>

@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="drone_ocean_world">
+
+    <physics name="default_physics" default="true" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <!-- <real_time_update_rate>250</real_time_update_rate> -->
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+        </solver>
+      </ode>
+    </physics>
+
+    <scene>
+      <grid>false</grid>
+      <ambient>0.5 0.5 0.5 1.0</ambient>
+      <background>0.6 0.7 0.8 1.0</background>
+      <shadows>true</shadows>
+      <sky>
+        <clouds>
+          <speed>0.6</speed>
+          <humidity>0.5</humidity>
+          <mean_size>0.5</mean_size>
+        </clouds>
+      </sky>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 50 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>2000</range>
+        <constant>0.9</constant>
+        <linear>0.001</linear>
+        <quadratic>0.0</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <gui fullscreen="0">
+      <!-- <camera name="user_camera">
+        <pose>-478.1 148.2 13.2 0 0.25 2.94</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+        <clip>
+          <near>0.1</near>
+          <far>10000</far>
+        </clip>
+      </camera> -->
+    </gui>
+
+    <include>
+      <uri>model://nathan_benderson_park</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+  </world>
+</sdf>  

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.6">
+    <model name="nathan_benderson_park">
+        <static>true</static>
+        <link name="base_link">
+            <pose>100.3 -1056.8 0 0 0 0</pose>
+            <collision name="base_collision">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Road</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+            </collision>
+            <collision name="Asphalt_collision">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Asphalt</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+            </collision>
+            <collision name="Concrete_collision">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Concrete</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+            </collision>
+            <collision name="Dock_collision">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Dock</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+            </collision>
+
+            <visual name="Road_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Road</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Road</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Wall_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Wall</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Wall</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Dock_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Dock</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Dock</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Concrete_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Concrete</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Concrete</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Railing_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Railing</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Railing</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="DoorWindow_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>DoorWindow</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/DoorWindow</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Windows_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Windows</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Windows</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Roof_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Roof</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Roof</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="PalmTree_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>nathan_benderson_park/PalmTree</name>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/PalmTree</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Asphalt_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Asphalt</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Asphalt</name>
+                    </script>
+                </material>
+            </visual>
+
+            <visual name="Trees_visual">
+                <geometry>
+                    <mesh>
+                        <uri>model://nathan_benderson_park/meshes/nb_park.dae</uri>
+                        <submesh>
+                            <name>Trees</name>
+                            <center>false</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://nathan_benderson_park/materials/scripts</uri>
+                        <uri>model://nathan_benderson_park/materials/textures</uri>
+                        <name>nathan_benderson_park/Trees</name>
+                    </script>
+                </material>
+            </visual>
+        </link>
+
+        <!-- <link name="heightmap">
+            <collision name="heightmap_collision">
+                <geometry>
+                    <heightmap>
+                        <uri>model://nathan_benderson_park/materials/textures/Heightmap.png</uri>
+                        <size>1724.5 3449 7</size>
+                        <pos>100.3 -1056.8 -29.748</pos>
+                    </heightmap>
+                </geometry>
+            </collision>
+            <visual name="heightmap_visual">
+                <geometry>
+                    <heightmap>
+                        <texture>
+                            <diffuse>model://nathan_benderson_park/materials/textures/Sand_Albedo.png</diffuse>
+                            <normal>model://nathan_benderson_park/materials/textures/flat_normal.png</normal>
+                            <size>10</size>
+                        </texture>
+                        <texture>
+                            <diffuse>model://nathan_benderson_park/materials/textures/Grass_Albedo.png</diffuse>
+                            <normal>model://nathan_benderson_park/materials/textures/flat_normal.png</normal>
+                            <size>10</size>
+                        </texture>
+                        <blend>
+                            <min_height>4</min_height>
+                            <fade_dist>1</fade_dist>
+                        </blend>
+                        <uri>model://nathan_benderson_park/materials/textures/Heightmap.png</uri>
+                        <size>1724.5 3449 7</size>
+                        <pos>100.3 -1056.8 -29.748</pos>
+                    </heightmap>
+                </geometry>
+            </visual>
+        </link> -->
+
+        <link name="heightmap">
+            <collision name="heightmap_collision">
+                <geometry>
+                    <heightmap>
+                        <uri>model://nathan_benderson_park/materials/textures/Heightmap.png</uri>
+                        <size>3449 3449 7</size>
+                        <pos>100.3 -1056.8 0</pos>
+                    </heightmap>
+                </geometry>
+            </collision>
+            <visual name="heightmap_visual">
+                <geometry>
+                    <heightmap>
+                        <texture>
+                            <diffuse>
+                                model://nathan_benderson_park/materials/textures/Park_Albedo.png</diffuse>
+                            <normal>model://nathan_benderson_park/materials/textures/flat_normal.png</normal>
+                            <size>3449 3449 7</size>
+                        </texture>
+
+                        <uri>model://nathan_benderson_park/materials/textures/Heightmap.png</uri>
+                        <size>3449 3449 7</size>
+                        <pos>100.3 -1056.8 0</pos>
+                    </heightmap>
+                </geometry>
+            </visual>
+        </link>
+    </model>
+</sdf>
