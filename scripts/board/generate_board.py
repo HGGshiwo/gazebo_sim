@@ -212,7 +212,7 @@ if __name__ == "__main__":
         "--layout", choices=layout_keys, default=layout_keys[-1], help="布局"
     )
     parser.add_argument(
-        "--family", default="tag16h5", help="AprilTag族 (默认: tag16h5, 即 tag5)"
+        "--family", default="tag36h11", help="AprilTag族 (默认: tag16h5, 即 tag5)"
     )
     parser.add_argument(
         "--size-mm", type=float, default=600.0, help="画板的实际物理边长(毫米)，默认 600mm"
