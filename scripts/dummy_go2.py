@@ -8,9 +8,8 @@ import time
 
 import rospy
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form # 引入 Form
 from nav_msgs.msg import Odometry
-from pydantic import BaseModel
 from pymavlink import mavutil
 from std_msgs.msg import Bool, String
 
@@ -20,20 +19,19 @@ from std_msgs.msg import Bool, String
 app = FastAPI()
 ros_node_instance = None
 
-
-class PushRequest(BaseModel):
-    content: str
-    sender: str
-    target: str
-
+# 移除了原先的 PushRequest BaseModel，改用 Form 直接在接口中定义参数
 
 @app.post("/api/push")
-def api_push(req: PushRequest):
+def api_push(
+    content: str = Form(...), 
+    sender: str = Form(...), 
+    target: str = Form(...)
+):
     global ros_node_instance
     if not ros_node_instance:
         raise HTTPException(status_code=500, detail="ROS 1 node not ready")
 
-    content = req.content
+    # req.content 直接变成了参数 content
     rospy.loginfo(f"FastAPI Received: {content}")
 
     if content == "趴下":
