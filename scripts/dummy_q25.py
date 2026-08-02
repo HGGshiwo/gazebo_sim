@@ -13,13 +13,14 @@ from typing import Any, Optional, Tuple
 ros_loaded = False
 try:
     import rospy
-    from geometry_msgs.msg import Twist
+    from geometry_msgs.msg import Twist, Pose, PoseWithCovarianceStamped
+    from sensor_msgs.msg import JointState
     from std_msgs.msg import Float32, String
 
     ros_loaded = True
 except ImportError:
-    rospy.loginfo("WARNING: ROS not available, running in UDP only mode")
-from mavproxy_ros.controller.dog_utils import *
+    print("WARNING: ROS not available, running in UDP only mode")
+from dog_utils import *
 
 MAX_VEL_YAW = 1
 MAX_VEL_X = 1
@@ -27,6 +28,134 @@ MAX_VEL_Y = 1
 MAX_ACCEL = 1.0
 MAX_ANGULAR_ACCEL = 0.2
 
+
+# -------------------------- 机器狗实际交互接口 --------------------------
+class ChampDogInterface:
+    """封装机器狗的实际ROS交互，包括速度控制、站起/趴下状态控制与反馈"""
+
+    def __init__(self):
+        self.current_height = 0.15  # 默认高度（站立状态约 0.15m）
+        self.target_pose_z = -0.12  # 默认趴下高度偏移
+        self.current_state = "passive"  
+        self.pose_published = False  
+        self.init_stand_detected = False  
+        
+        # === [新增1] 启动延迟与稳定确认计时器 ===
+        self.start_time = time.time()       # 节点启动时间
+        self.stand_stable_counter = 0       # 站立高度连续达标计数
+
+        self.pub_body_pose = None
+        self.pub_cmd_vel = None
+        self.pub_robot_state = None
+        self.sub_pose_feedback = None
+        
+        if ros_loaded:
+            try:
+                self.sub_pose_feedback = rospy.Subscriber(
+                    '/base_to_footprint_pose', 
+                    PoseWithCovarianceStamped, 
+                    self._pose_feedback_cb
+                )
+                self.pub_body_pose = rospy.Publisher('/body_pose', Pose, queue_size=1)
+                self.pub_cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+                self.pub_robot_state = rospy.Publisher('/robot_state', String, queue_size=10)
+                rospy.loginfo("ChampDogInterface: ROS publishers and subscribers initialized successfully.")
+            except Exception as e:
+                rospy.logwarn(f"ChampDogInterface: Failed to initialize ROS topics: {e}")
+
+    def _pose_feedback_cb(self, msg):
+        self.current_height = msg.pose.pose.position.z
+
+    def set_state(self, new_state):
+        if self.current_state != new_state:
+            rospy.loginfo(f"🔄 State transition: {self.current_state} -> {new_state}")
+            self.current_state = new_state
+            self.pose_published = False  
+            if ros_loaded and self.pub_robot_state is not None:
+                self.pub_robot_state.publish(String(data=new_state))
+
+    def stand(self):
+        self.target_pose_z = 0.0
+        self.set_state("stand_up")
+        self.publish_pose()
+
+    def lie(self):
+        self.target_pose_z = -0.12
+        self.set_state("lie_down")
+        self.publish_pose()
+
+    def publish_pose(self):
+        if not ros_loaded or self.pub_body_pose is None:
+            return
+        pose = Pose()
+        pose.orientation.w = 1.0  
+        pose.position.z = self.target_pose_z
+        self.pub_body_pose.publish(pose)
+
+    def is_pose_success(self, target_state):
+        if not ros_loaded:
+            return True
+        if target_state == "stand":
+            return self.current_height > 0.22
+        elif target_state == "lie":
+            return self.current_height < 0.18
+        return False
+
+    def publish_cmd_vel(self, vel_x, vel_y, vel_yaw):
+        if not ros_loaded or self.pub_cmd_vel is None:
+            return
+        twist = Twist()
+        twist.linear.x = vel_x
+        twist.linear.y = vel_y
+        twist.linear.z = 0.0
+        twist.angular.x = 0.0
+        twist.angular.y = 0.0
+        twist.angular.z = -vel_yaw  
+        self.pub_cmd_vel.publish(twist)
+
+    def update(self, vel_x, vel_y, vel_yaw):
+        """更新状态机并发布相应的ROS指令"""
+        if self.current_state == "stand_up":
+            self.publish_pose()
+            if self.is_pose_success("stand"):
+                self.set_state("freestand")
+                
+        elif self.current_state == "lie_down":
+            self.publish_pose()
+            if self.is_pose_success("lie"):
+                self.set_state("passive")
+                
+        elif self.current_state in ["freestand", "fixedstand", "trotting"]:
+            is_moving = (abs(vel_x) > 0.01 or abs(vel_y) > 0.01 or abs(vel_yaw) > 0.01)
+            if is_moving:
+                self.set_state("trotting")
+            else:
+                self.set_state("freestand")
+            self.publish_cmd_vel(vel_x, vel_y, vel_yaw)
+            
+        else:  # "passive" 或者其他过渡状态
+            if not self.init_stand_detected:
+                # === [修改重点]: 增加启动 3.0秒 缓冲期，且必须连续 20帧(2秒) 高度大于0.22m 才是真正站稳！ ===
+                if time.time() - self.start_time > 3.0:
+                    if self.current_height > 0.22:
+                        self.stand_stable_counter += 1
+                        if self.stand_stable_counter >= 20:
+                            rospy.loginfo("✅ 检测到机器狗已完全加载并平稳站立，开始执行初始趴下动作")
+                            self.init_stand_detected = True
+                            self.lie()  
+                    else:
+                        self.stand_stable_counter = 0 # 任何晃动抖动都会重置计数
+            else:
+                # 已经是趴下状态后的处理
+                if not self.pose_published or not self.is_pose_success("lie"):
+                    self.publish_pose()
+                    if self.is_pose_success("lie"):
+                        self.pose_published = True
+                
+                # === [修改重点]: 处于彻底下趴(passive)状态时，不再频繁狂发 cmd_vel(0,0,0)，直接静默！ ===
+                # 如果没完成同步，发0让它冷静；如果趴好了，就绝不再发布 cmd_vel 干扰底层
+                if not self.pose_published:
+                    self.publish_cmd_vel(0.0, 0.0, 0.0)
 
 # -------------------------- 机器人状态管理器 --------------------------
 class Q25RobotState:
@@ -42,7 +171,7 @@ class Q25RobotState:
         self.in_l_mode = False  # 是否在L模式
         self.emergency_stop = False  # 是否软急停
         # 运动状态
-        self.platform_height = 2  # 0=匍匐，2=正常
+        self.platform_height = 0  # 0=匍匐，2=正常
         self.gait_state = 0  # 0=行走，1=跑步
         self.speed_gear = 0  # 0=低速，1=高速
         # 速度信息
@@ -470,23 +599,32 @@ class Q25UDPServer:
         self.robot_state = Q25RobotState()
         self.running = False
         self.report_threads = []
-        # ROS publishers
-        self.pub_robot_state = None
-        self.pub_cmd_vel = None
-        self._current_state = "passive"
+        # ROS publishers and interface
         if ros_loaded:
             try:
                 rospy.init_node("q25_dummy", anonymous=True)
-                self.pub_robot_state = rospy.Publisher(
-                    "/robot_state", String, queue_size=10
-                )
-                self.pub_cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-                # rospy.Subscriber("/current_state", String, self.current_state_callback)
-                rospy.loginfo(
-                    "ROS publishers initialized: /robot_state, /cmd_vel, /current_state"
-                )
+                rospy.loginfo("ROS node 'q25_dummy' initialized successfully.")
             except rospy.exceptions.ROSException as e:
-                rospy.loginfo(f"WARNING: Failed to initialize ROS: {e}")
+                rospy.loginfo(f"WARNING: Failed to initialize ROS node: {e}")
+
+        # 实例化封装的狗交互接口
+        self.dog_interface = ChampDogInterface()
+
+    @property
+    def _current_state(self):
+        return self.dog_interface.current_state
+
+    @_current_state.setter
+    def _current_state(self, value):
+        self.dog_interface.set_state(value)
+
+    @property
+    def pub_robot_state(self):
+        return self.dog_interface.pub_robot_state
+
+    @property
+    def pub_cmd_vel(self):
+        return self.dog_interface.pub_cmd_vel
 
     def start_report_threads(self):
         """启动状态上报线程"""
@@ -540,12 +678,19 @@ class Q25UDPServer:
     #     self._current_state = msg.data
     def get_current_state_int(self) -> int:
         """将当前状态字符串转换为int值"""
-        state_map = {"passive": 0, "fixedstand": 2, "freestand": 3, "trotting": 4}
+        state_map = {
+            "passive": 0,
+            "stand_up": 1,
+            "fixedstand": 2,
+            "freestand": 3,
+            "trotting": 4,
+            "lie_down": 5
+        }
         return state_map.get(self._current_state, 0)
 
     def ros_publish_task(self):
-        """ROS消息发布任务（50Hz）- 只发布cmd_vel"""
-        if not ros_loaded or self.pub_cmd_vel is None:
+        """ROS消息发布任务（10Hz）- 更新状态机并发布相应的ROS指令"""
+        if not ros_loaded:
             return
 
         hz = 10
@@ -553,24 +698,11 @@ class Q25UDPServer:
         rate = rospy.Rate(hz)
         while self.running:
             try:
-                twist = Twist()
-                current_state_int = self.get_current_state_int()
-                if current_state_int in [2, 3, 4]:
-                    twist.linear.x = self.robot_state.vel_x
-                    twist.linear.y = self.robot_state.vel_y
-                    twist.linear.z = 0.0
-                    twist.angular.x = 0.0
-                    twist.angular.y = 0.0
-                    twist.angular.z = -self.robot_state.vel_yaw
-                else:
-                    twist.linear.x = 0.0
-                    twist.linear.y = 0.0
-                    twist.linear.z = 0.0
-                    twist.angular.x = 0.0
-                    twist.angular.y = 0.0
-                    twist.angular.z = 0.0
-                self.pub_cmd_vel.publish(twist)
-                # print(twist)
+                self.dog_interface.update(
+                    self.robot_state.vel_x,
+                    self.robot_state.vel_y,
+                    self.robot_state.vel_yaw
+                )
                 rate.sleep()
             except rospy.ROSInterruptException:
                 break
@@ -608,10 +740,13 @@ class Q25UDPServer:
         success, cmd_info = self.robot_state.handle_command(
             cmd_enum, head.parameter_size, data_obj, self._current_state
         )
-        if success and ros_loaded and self.pub_robot_state is not None and cmd_info:
-            self.pub_robot_state.publish(String(data=cmd_info))
-            print(f"set state: {cmd_info}")
-            self._current_state = cmd_info
+        if success and cmd_info:
+            if cmd_info in ["freestand", "fixedstand"]:
+                self.dog_interface.stand()
+            elif cmd_info == "passive":
+                self.dog_interface.lie()
+            else:
+                self._current_state = cmd_info
 
     # 生成响应
     # if cmd_enum in [CommandType.CHARGE_REQUEST, CommandType.CHARGE_QUERY_STATUS]:
