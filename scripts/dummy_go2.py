@@ -110,15 +110,15 @@ class MavlinkBridgeNode:
         self.timer = rospy.Timer(rospy.Duration(0.1), self.timer_loop)
 
         # --- 3. MAVLink 连接 ---
-        self.fc_conn = mavutil.mavlink_connection("tcp:localhost:5760")
-        self.upper_conn = mavutil.mavlink_connection("tcpin:localhost:5761")
-        rospy.loginfo("MAVLink 连接初始化完成 (等待注入模式)。")
+        # self.fc_conn = mavutil.mavlink_connection("tcp:localhost:5760")
+        # self.upper_conn = mavutil.mavlink_connection("tcpin:localhost:5761")
+        # rospy.loginfo("MAVLink 连接初始化完成 (等待注入模式)。")
 
         # --- 4. 启动后台线程 ---
-        self.mav_thread = threading.Thread(
-            target=self.mavlink_passthrough_loop, daemon=True
-        )
-        self.mav_thread.start()
+        # self.mav_thread = threading.Thread(
+        #     target=self.mavlink_passthrough_loop, daemon=True
+        # )
+        # self.mav_thread.start()
 
         self.fastapi_thread = threading.Thread(
             target=self.start_fastapi_server, daemon=True
@@ -263,7 +263,7 @@ class MavlinkBridgeNode:
         self.i += 1
 
         # 3. 将自主维护的 ENU 转回经纬度，注入给飞控
-        self.inject_virtual_gps()
+        # self.inject_virtual_gps()
 
 
 def main():
