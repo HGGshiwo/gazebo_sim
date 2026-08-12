@@ -50,8 +50,7 @@
           </script>
         </material>
       </visual>
-       <!-- <sensor name="lidar_sensor" type="gpu_ray"> -->
-      <sensor name="lidar_sensor" type="ray">
+      <sensor name="lidar_sensor" type="gpu_ray">
         <pose>0 0 0 0 0 0</pose>
         <visualize>false</visualize>
         <update_rate>20</update_rate>
@@ -81,8 +80,7 @@
             <stddev>0.01</stddev>
           </noise>
         </ray>
-        <!-- <plugin name="gazebo_ros_gpu_laser_controller" filename="libgazebo_ros_gpu_laser.so"> -->
-        <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_laser.so">
+        <plugin name="gazebo_ros_gpu_laser_controller" filename="libgazebo_ros_gpu_laser.so">
           <topicName>/scan</topicName>
           <frameName>/lidar_link</frameName>
         </plugin>
@@ -613,7 +611,7 @@
       <modelXYZToAirplaneXForwardZDown>0 0 0 3.141593 0 0</modelXYZToAirplaneXForwardZDown>
       <gazeboXYZToNED>0 0 0 3.141593 0 0</gazeboXYZToNED>
       <imuName>iris_demo::iris::iris/imu_link::imu_sensor</imuName>
-      <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+      <connectionTimeoutMaxCount>1000</connectionTimeoutMaxCount>
       <control channel="0">
       <!--
           incoming control command [0, 1]

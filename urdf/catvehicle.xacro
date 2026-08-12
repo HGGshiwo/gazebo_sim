@@ -197,7 +197,7 @@ http://www.car-engineer.com/vehicle-inertia-calculation-tool/
             <modelXYZToAirplaneXForwardZDown>0 0 0 3.141593 0 0</modelXYZToAirplaneXForwardZDown>
             <gazeboXYZToNED>0 0 0 3.141593 0 0</gazeboXYZToNED>
             <imuName>ugv_0::base_link::imu_sensor</imuName>
-            <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+            <connectionTimeoutMaxCount>1000</connectionTimeoutMaxCount>
         </plugin>
     </gazebo>
 

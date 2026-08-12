@@ -4,9 +4,10 @@
   <arg name="rviz" default="true" />
   <arg name="gui" default="true" />
   <arg name="output" default="screen" />
+  <arg name="world_type" default="empty_world.launch" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <!-- <arg name="world_name" value="$(find gazebo_sim)/worlds/small_city.world"/> -->
+    <arg name="world_name" value="$(find gazebo_sim)/worlds/$(arg world_type)"/>
     <arg name="gui" value="$(arg gui)" />
     <arg name="output" value="$(arg output)" />
   </include>
@@ -61,6 +62,42 @@
       required="true" if="$(arg rviz)" />
   </group>
 
+  <group if="$(eval arg('robot_type') == 'go2')">
+    <arg name="frame_prefix" value="" />
+    <arg name="robot_name" value="/"/>
+
+    <include file="$(find gazebo_sim)/launch/spawn_dog.launch">
+      <arg name="robot_name"             value="$(arg robot_name)"/>
+      <arg name="rviz"                   value="false"/>
+      <arg name="joint_controller_topic" value="joint_group_position_controller/command"/>
+      <arg name="hardware_connected"     value="false"/>
+      <arg name="publish_foot_contacts"  value="false"/>
+      <arg name="close_loop_odom"        value="true"/>
+    </include>
+
+    <node name="dummy_go2" type="dummy_go2.py" pkg="gazebo_sim" output="screen" required="true" />
+
+
+    <group ns="$(arg robot_name)">    
+        <include file="$(find champ_config)/launch/include/gmapping.launch">
+            <arg name="frame_prefix" value="$(arg frame_prefix)"/>
+        </include>
+
+        <!-- Calls navigation stack packages -->
+        <include file="$(find champ_config)/launch/include/move_base.launch">
+            <arg name="frame_prefix" value="$(arg frame_prefix)"/>
+            <arg name="robot_name"   value="$(arg robot_name)"/>
+        </include>
+
+        <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz"
+            args="-d $(find champ_navigation)/rviz/navigate.rviz -f $(arg frame_prefix)map"
+            output="screen"/>
+    </group>
+
+  </group>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_base_link"
+    args="0 0 0 0 0 0 base base_link" output="screen" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="realsense2base_link"
     args="0 0 0 -1.5708 0 -1.5708 base_link realsense " output="screen" />
   <!-- 
