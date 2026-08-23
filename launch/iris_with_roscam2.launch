@@ -4,7 +4,7 @@
   <arg name="rviz" default="true" />
   <arg name="gui" default="true" />
   <arg name="output" default="screen" />
-  <arg name="world_type" default="empty_world.launch" />
+  <arg name="world_type" default="empty.world" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find gazebo_sim)/worlds/$(arg world_type)"/>
@@ -84,10 +84,15 @@
         </include>
 
         <!-- Calls navigation stack packages -->
-        <include file="$(find champ_config)/launch/include/move_base.launch">
+        <!-- <include file="$(find champ_config)/launch/include/move_base.launch">
+            <arg name="frame_prefix" value="$(arg frame_prefix)"/>
+            <arg name="robot_name"   value="$(arg robot_name)"/>
+        </include> -->
+        <include file="$(find gazebo_sim)/launch/move_base_octo.launch">
             <arg name="frame_prefix" value="$(arg frame_prefix)"/>
             <arg name="robot_name"   value="$(arg robot_name)"/>
         </include>
+
 
         <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz"
             args="-d $(find champ_navigation)/rviz/navigate.rviz -f $(arg frame_prefix)map"

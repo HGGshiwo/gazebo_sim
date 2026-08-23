@@ -1,0 +1,8 @@
+<launch>
+    <arg name="robot_type" default="drone"/>  <!-- dog/drone -->
+    <param name="/use_sim_time" value="true" />
+    <node pkg="gazebo_sim" type="start_sitl.sh" name="sitl_spawner" output="screen" />
+    <node pkg="image_transport" type="republish" name="image_decompressor" output="screen" 
+          args="compressed in:=/UAV0/sensor/video11_camera/ raw out:=/roscam/cam/image_raw _image_transport:=compressed" />
+    <node pkg="rviz" type="rviz" name="rviz" output="screen" />
+</launch>
