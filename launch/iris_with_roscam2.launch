@@ -77,6 +77,13 @@
 
     <node name="dummy_go2" type="dummy_go2.py" pkg="gazebo_sim" output="screen" required="true" />
 
+    <node pkg="gazebo_sim" type="start_goal_action.sh" name="goal_action" output="screen"/>
+
+    <node pkg="gazebo_sim" type="start_task_queue.sh" name="task_queue" output="screen"/>
+
+    <include file="$(find bridge_mavlink)/launch/bridge_mavlink.launch" />
+
+    <include file="$(find bridge_routes)/launch/bridge_routes.launch" />
 
     <group ns="$(arg robot_name)">    
         <include file="$(find champ_config)/launch/include/gmapping.launch">
@@ -88,15 +95,12 @@
             <arg name="frame_prefix" value="$(arg frame_prefix)"/>
             <arg name="robot_name"   value="$(arg robot_name)"/>
         </include> -->
-        <include file="$(find gazebo_sim)/launch/move_base_octo.launch">
-            <arg name="frame_prefix" value="$(arg frame_prefix)"/>
-            <arg name="robot_name"   value="$(arg robot_name)"/>
+        <include file="$(find jie_octomap)/launch/move_base.launch">
+            <arg name="frame_prefix"       value="$(arg frame_prefix)"/>
+            <arg name="robot_name"         value="$(arg robot_name)"/>
+            <arg name="use_rviz"           value="$(arg rviz)"/>
+            <arg name="point_cloud_topic"  value="/points"/>
         </include>
-
-
-        <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz"
-            args="-d $(find champ_navigation)/rviz/navigate.rviz -f $(arg frame_prefix)map"
-            output="screen"/>
     </group>
 
   </group>

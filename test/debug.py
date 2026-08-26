@@ -42,7 +42,7 @@ class Debug(unittest.TestCase):
     def test_case1(self):
         while True:
             try:
-                time.sleep(3) # 等待模型加载完成
+                time.sleep(5) # 等待模型加载完成
                 IRIS_X = random.randint(-1, 1)
                 IRIS_Y = random.randint(-1, 1)
                 self.robot.set_state(x=IRIS_X, y=IRIS_Y, z=0.5)

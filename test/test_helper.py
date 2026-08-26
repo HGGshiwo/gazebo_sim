@@ -126,11 +126,11 @@ class GazeboObject:
         return robot_type_map.get(robot_type)[2]
 
     def __init__(self, robot_name=None):
-        rospy.wait_for_service("/gazebo/get_model_state", timeout=5.0)
+        rospy.wait_for_service("/gazebo/get_model_state", timeout=10.0)
         self.get_state_service = rospy.ServiceProxy(
             "/gazebo/get_model_state", GetModelState
         )
-        rospy.wait_for_service("/gazebo/set_model_state", timeout=5.0)
+        rospy.wait_for_service("/gazebo/set_model_state", timeout=10.0)
         self.set_state_service = rospy.ServiceProxy(
             "/gazebo/set_model_state", SetModelState
         )
