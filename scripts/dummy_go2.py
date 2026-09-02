@@ -24,7 +24,11 @@ class DummyGo2Node:
         self.gps_enabled = True
         
         # Mode 状态: 1(站立解锁), 7(站立锁定), 6(趴下/坐下)
-        self.mode = 6  # 默认初始为趴下/坐下状态
+        init_posture = rospy.get_param("~init_posture", rospy.get_param("/init_posture", "stand"))
+        if str(init_posture).lower() in ["stand", "standup", "站立", "起立"]:
+            self.mode = 1  # 初始为站立状态
+        else:
+            self.mode = 6  # 初始为趴下/坐下状态
         self.battery = 100  # 模拟电量 100%
         self.last_status_update = time.time()
 

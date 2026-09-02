@@ -5,6 +5,7 @@
   <arg name="gui" default="true" />
   <arg name="output" default="screen" />
   <arg name="world_type" default="empty.world" />
+  <arg name="init_posture" default="$(eval 'stand' if arg('robot_type') == 'go2' else 'sit')" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find gazebo_sim)/worlds/$(arg world_type)"/>
@@ -27,7 +28,7 @@
 
   </node>
 
-  <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger"
+  <!-- <node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger"
     output="screen">
     <param name="destination_frame" value="map" />
     <param name="cloud_destination_topic" value="/points" />
@@ -39,7 +40,7 @@
     <param name="scan_time" value="0.0333333" />
     <param name="range_min" value="0.30" />
     <param name="range_max" value="50.0" />
-  </node>
+  </node> -->
 
   <group if="$(eval arg('robot_type') == 'car')">
     <node name="dummy_car" type="dummy_car.py" pkg="gazebo_sim" output="screen" required="true" />
@@ -56,8 +57,11 @@
 
   <group if="$(eval arg('robot_type') == 'dog')">
     <include file="$(find gazebo_sim)/launch/spawn_dog.launch">
+      <arg name="init_posture"           value="$(arg init_posture)"/>
     </include>
-    <node name="dummy_q25" type="dummy_q25.py" pkg="gazebo_sim" output="screen" required="true" />
+    <node name="dummy_q25" type="dummy_q25.py" pkg="gazebo_sim" output="screen" required="true">
+      <param name="init_posture"         value="$(arg init_posture)"/>
+    </node>
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find gazebo_sim)/rviz/dog.rviz"
       required="true" if="$(arg rviz)" />
   </group>
@@ -73,17 +77,23 @@
       <arg name="hardware_connected"     value="false"/>
       <arg name="publish_foot_contacts"  value="false"/>
       <arg name="close_loop_odom"        value="true"/>
+      <arg name="init_posture"           value="$(arg init_posture)"/>
     </include>
 
-    <node name="dummy_go2" type="dummy_go2.py" pkg="gazebo_sim" output="screen" required="true" />
+    <node name="dummy_go2" type="dummy_go2.py" pkg="gazebo_sim" required="true">
+      <param name="init_posture"         value="$(arg init_posture)"/>
+    </node>
 
-    <node pkg="gazebo_sim" type="start_goal_action.sh" name="goal_action" output="screen"/>
+    <node pkg="gazebo_sim" type="start_goal_action.sh" name="goal_action"/>
 
-    <node pkg="gazebo_sim" type="start_task_queue.sh" name="task_queue" output="screen"/>
+    <node pkg="gazebo_sim" type="start_task_queue.sh" name="task_queue"/>
 
-    <include file="$(find bridge_mavlink)/launch/bridge_mavlink.launch" />
+    <node pkg="gazebo_sim" type="start_image_qa.sh" name="image_qa">
+    </node>
 
-    <include file="$(find bridge_routes)/launch/bridge_routes.launch" />
+    <include file="$(find api_routes)/launch/api_routes_real.launch" />
+
+    <include file="$(find mqtt_task_bridge)/launch/mqtt_task_bridge.launch" />
 
     <group ns="$(arg robot_name)">    
         <include file="$(find champ_config)/launch/include/gmapping.launch">
@@ -95,11 +105,16 @@
             <arg name="frame_prefix" value="$(arg frame_prefix)"/>
             <arg name="robot_name"   value="$(arg robot_name)"/>
         </include> -->
-        <include file="$(find jie_octomap)/launch/move_base.launch">
+        <!-- <include file="$(find jie_octomap)/launch/move_base.launch">
             <arg name="frame_prefix"       value="$(arg frame_prefix)"/>
             <arg name="robot_name"         value="$(arg robot_name)"/>
             <arg name="use_rviz"           value="$(arg rviz)"/>
             <arg name="point_cloud_topic"  value="/points"/>
+        </include> -->
+        <include file="$(find jie_octomap)/launch/navigation.launch">
+          <arg name="point_cloud_topic"  value="/points"/>
+          <arg name="global_octomap_path" value="" />
+          <arg name="publish_fake_tf" value="false" />
         </include>
     </group>
 

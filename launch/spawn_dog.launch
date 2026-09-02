@@ -12,6 +12,7 @@
     <arg name="world_init_heading"     default="1.570796" /> <!-- Initial heading of the robot in Gazebo World -->
     <arg name="respawn_controller"     default="false"/>
     <arg name="enable_contact_sensor"  default="true" />
+    <arg name="init_posture"           default="sit" />
     
     <!-- Bringup 相关参数 -->
     <arg name="joint_controller_topic" default="joint_group_position_controller/command"/>
@@ -23,6 +24,7 @@
     <arg name="laser"                  default="sim"/>
      
     <param name="use_sim_time" value="true" />
+    <param name="init_posture" value="$(arg init_posture)" />
 
     <include file="$(eval find(arg('config_package')) + '/launch/bringup.launch')">
         <arg name="robot_name"             value="$(arg robot_name)"/>

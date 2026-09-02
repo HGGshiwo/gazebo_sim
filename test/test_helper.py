@@ -52,7 +52,7 @@ def sitl_env(robot_type: str = None):
     if apm_arg is None:
         raise RuntimeError(f"不支持机器人类型：{robot_type}")
     v, f, _ = apm_arg
-    cmd = f"sim_vehicle.py --no-rebuild --no-mavproxy -v {v} -f {f} --custom-location=30.11269,120.1429,0,0".split()
+    cmd = f"sim_vehicle.py --no-rebuild --no-mavproxy -v {v} -f {f} --custom-location=30.13930,120.08326,0,0".split()
 
     # 3. 带着狗牌启动进程
     sitl_process = subprocess.Popen(

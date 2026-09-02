@@ -51,6 +51,12 @@ class ChampDogInterface:
         
         if ros_loaded:
             try:
+                init_posture = rospy.get_param("~init_posture", rospy.get_param("/init_posture", "sit"))
+                if str(init_posture).lower() in ["stand", "standup", "站立", "起立"]:
+                    self.init_stand_detected = True
+                    self.current_state = "freestand"
+                    self.target_pose_z = 0.0
+
                 self.sub_pose_feedback = rospy.Subscriber(
                     '/base_to_footprint_pose', 
                     PoseWithCovarianceStamped, 
@@ -59,7 +65,7 @@ class ChampDogInterface:
                 self.pub_body_pose = rospy.Publisher('/body_pose', Pose, queue_size=1)
                 self.pub_cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
                 self.pub_robot_state = rospy.Publisher('/robot_state', String, queue_size=10)
-                rospy.loginfo("ChampDogInterface: ROS publishers and subscribers initialized successfully.")
+                rospy.loginfo(f"ChampDogInterface: ROS publishers and subscribers initialized (init_posture: {init_posture}).")
             except Exception as e:
                 rospy.logwarn(f"ChampDogInterface: Failed to initialize ROS topics: {e}")
 
