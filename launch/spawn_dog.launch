@@ -11,13 +11,13 @@
     <arg name="world_init_z"           default="0.4" />
     <arg name="world_init_heading"     default="1.570796" /> <!-- Initial heading of the robot in Gazebo World -->
     <arg name="respawn_controller"     default="false"/>
-    <arg name="enable_contact_sensor"  default="true" />
+    <arg name="enable_contact_sensor"  default="false" />
     <arg name="init_posture"           default="sit" />
     
     <!-- Bringup 相关参数 -->
     <arg name="joint_controller_topic" default="joint_group_position_controller/command"/>
     <arg name="hardware_connected"     default="false"/>
-    <arg name="publish_foot_contacts"  default="false"/>
+    <arg name="publish_foot_contacts"  default="true"/>
     <arg name="close_loop_odom"        default="true"/>
     <arg name="publish_joint_control"  default="true"/>
     <arg name="has_imu"                default="true"/>

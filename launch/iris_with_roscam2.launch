@@ -75,7 +75,7 @@
       <arg name="rviz"                   value="false"/>
       <arg name="joint_controller_topic" value="joint_group_position_controller/command"/>
       <arg name="hardware_connected"     value="false"/>
-      <arg name="publish_foot_contacts"  value="false"/>
+      <arg name="publish_foot_contacts"  value="true"/>
       <arg name="close_loop_odom"        value="true"/>
       <arg name="init_posture"           value="$(arg init_posture)"/>
     </include>
@@ -96,6 +96,27 @@
     <include file="$(find mqtt_task_bridge)/launch/mqtt_task_bridge.launch" />
 
     <group ns="$(arg robot_name)">    
+        <!-- 3D 点云转换 2D 激光雷达扫描线，驱动 gmapping SLAM 建图 -->
+        <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
+            <remap from="cloud_in" to="/points"/>
+            <remap from="scan" to="/scan"/>
+            <rosparam>
+                target_frame: base_link
+                transform_tolerance: 0.01
+                min_height: -0.10
+                max_height: 1.00
+                angle_min: -1.5708
+                angle_max: 1.5708
+                angle_increment: 0.0087
+                scan_time: 0.1
+                range_min: 0.20
+                range_max: 20.0
+                use_inf: true
+                inf_epsilon: 1.0
+                concurrency_level: 1
+            </rosparam>
+        </node>
+
         <include file="$(find champ_config)/launch/include/gmapping.launch">
             <arg name="frame_prefix" value="$(arg frame_prefix)"/>
         </include>

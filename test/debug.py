@@ -43,8 +43,8 @@ class Debug(unittest.TestCase):
         while True:
             try:
                 time.sleep(5) # 等待模型加载完成
-                IRIS_X = random.randint(-1, 1)
-                IRIS_Y = random.randint(-1, 1)
+                IRIS_X = 0 #random.randint(-1, 1)
+                IRIS_Y = 0 #random.randint(-1, 1)
                 self.robot.set_state(x=IRIS_X, y=IRIS_Y, z=0.5)
                 self.board = Apriltag("apriltag")
                 self.board.spawn()
