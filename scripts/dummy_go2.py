@@ -7,6 +7,8 @@ import time
 
 import rospy
 import tf
+import tf.transformations as tft
+from gazebo_msgs.srv import GetModelState
 from geometry_msgs.msg import Pose, Quaternion
 from nav_msgs.msg import Odometry
 from pymavlink import mavutil
@@ -39,10 +41,16 @@ class DummyGo2Node:
         self.current_quat = (0.0, 0.0, 0.0, 1.0)
         self.is_map_aligned = False
         self.latest_odom = None
+        self.latest_twist = None
         self.pose_lock = threading.Lock()
 
-        # TF 监听器：监听 map -> base_footprint 全局坐标系变换
+        # TF 监听器与广播器
         self.tf_listener = tf.TransformListener()
+        self.tf_broadcaster = tf.TransformBroadcaster()
+
+        # Gazebo 模型真值服务代理 (替代 gmapping，彻底杜绝 yaw 漂移)
+        self.robot_name = rospy.get_param("~robot_name", rospy.get_param("/robot_name", "/"))
+        self.get_model_state = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
 
         # 全局参考原点 (用于将 ENU 转换为注入给飞控的经纬度)
         self.origin_lat = 30.2674  # 基准纬度
@@ -90,8 +98,8 @@ class DummyGo2Node:
         # 定时器：2 Hz 发布 /dank/status
         self.timer_status = rospy.Timer(rospy.Duration(0.5), self.publish_dank_status)
 
-        # 定时器：10 Hz 处理姿态维持、坐标更新、导航到达检测与定位转发
-        self.timer_loop = rospy.Timer(rospy.Duration(0.1), self.control_loop)
+        # 定时器：20 Hz 处理姿态维持、Gazebo真值同步、TF广播与定位转发
+        self.timer_loop = rospy.Timer(rospy.Duration(0.05), self.control_loop)
 
         rospy.loginfo("DummyGo2 Dank 适配节点已启动：支持 map 全局地图坐标对齐与 /dank 接口。")
 
@@ -116,22 +124,65 @@ class DummyGo2Node:
         self.pub_body_pose.publish(pose)
 
     # ---------------------------------------------------------
-    # [全局地图坐标同步] 通过 TF 获取 map -> base_footprint
+    # [Gazebo 真值同步与 TF 广播]
+    # 获取 Gazebo 真实世界位姿，动态计算并发布 map -> odom TF，
+    # 彻底消除里程计累积漂移与 gmapping yaw 偏差
     # ---------------------------------------------------------
-    def update_pose_from_tf(self):
-        """从 TF 树查询机器狗在 map 全局地图坐标系下的位姿"""
+    def sync_gazebo_truth_and_tf(self):
+        """获取 Gazebo 中机器狗真值，同步全局位姿并广播 map -> odom TF"""
         try:
-            (trans, rot) = self.tf_listener.lookupTransform("map", "base_footprint", rospy.Time(0))
-            with self.pose_lock:
-                self.current_enu_x = trans[0]
-                self.current_enu_y = trans[1]
-                self.current_enu_z = trans[2]
-                self.current_quat = rot
-                self.is_map_aligned = True
-            return True
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            # 若 map TF 尚未发布（如 SLAM 刚启动），则保留 odom 回退值
+            resp = self.get_model_state(self.robot_name, "world")
+            if not resp.success:
+                return False
+        except Exception as e:
+            rospy.logdebug_throttle(5.0, f"Gazebo get_model_state 异常: {e}")
             return False
+
+        pos = resp.pose.position
+        ori = resp.pose.orientation
+
+        # 1. 严格使用 Gazebo 真值作为机器狗在全局 map 中的实时位姿
+        with self.pose_lock:
+            self.current_enu_x = pos.x
+            self.current_enu_y = pos.y
+            self.current_enu_z = pos.z
+            self.current_quat = (ori.x, ori.y, ori.z, ori.w)
+            self.latest_twist = resp.twist
+            self.is_map_aligned = True
+
+        # 2. 动态计算 T_map_to_odom = T_map_to_base * inv(T_odom_to_base)
+        try:
+            (trans_ob, rot_ob) = self.tf_listener.lookupTransform("odom", "base_link", rospy.Time(0))
+
+            # T_map_to_base (Gazebo 真值)
+            M_T_B = tft.concatenate_matrices(
+                tft.translation_matrix([pos.x, pos.y, pos.z]),
+                tft.quaternion_matrix([ori.x, ori.y, ori.z, ori.w]),
+            )
+            # T_odom_to_base
+            O_T_B = tft.concatenate_matrices(
+                tft.translation_matrix(trans_ob),
+                tft.quaternion_matrix(rot_ob),
+            )
+            # T_map_to_odom = M_T_B * inv(O_T_B)
+            B_T_O = tft.inverse_matrix(O_T_B)
+            M_T_O = tft.concatenate_matrices(M_T_B, B_T_O)
+
+            trans_mo = tft.translation_from_matrix(M_T_O)
+            rot_mo = tft.quaternion_from_matrix(M_T_O)
+
+            # 广播 map -> odom (child: odom, parent: map)
+            self.tf_broadcaster.sendTransform(
+                trans_mo,
+                rot_mo,
+                rospy.Time.now(),
+                "odom",
+                "map",
+            )
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            pass
+
+        return True
 
     def odom_callback(self, msg: Odometry):
         with self.pose_lock:
@@ -236,18 +287,19 @@ class DummyGo2Node:
         rospy.loginfo(f"收到环境切换信号: {status}")
 
     def control_loop(self, event):
-        """10Hz 控制循环：持续维持物理姿态、更新全局位姿、检测导航到达，并发布 /loc_base"""
+        """20Hz 控制循环：持续维持物理姿态、同步Gazebo真值、广播TF、检测导航到达并发布 /loc_base"""
         # 1. 维持物理姿态 (趴下或站立)
         self.publish_posture_cmd()
 
-        # 2. 从 TF 更新 map 坐标系下的真实全局位姿
-        self.update_pose_from_tf()
+        # 2. 从 Gazebo 获取真值并广播 map -> odom TF
+        self.sync_gazebo_truth_and_tf()
 
         with self.pose_lock:
             cur_x = self.current_enu_x
             cur_y = self.current_enu_y
             cur_z = self.current_enu_z
             cur_q = self.current_quat
+            cur_twist = self.latest_twist
             frame_id = "map" if self.is_map_aligned else "odom"
 
         # 3. 检测是否到达目标地图点 (基于全局 map 坐标系)
@@ -277,11 +329,13 @@ class DummyGo2Node:
         loc_msg = Odometry()
         loc_msg.header.stamp = rospy.Time.now()
         loc_msg.header.frame_id = frame_id
-        loc_msg.child_frame_id = "base_footprint"
+        loc_msg.child_frame_id = "base_link"
         loc_msg.pose.pose.position.x = cur_x
         loc_msg.pose.pose.position.y = cur_y
         loc_msg.pose.pose.position.z = cur_z
         loc_msg.pose.pose.orientation = Quaternion(*cur_q)
+        if cur_twist is not None:
+            loc_msg.twist.twist = cur_twist
         self.pub_loc.publish(loc_msg)
 
 

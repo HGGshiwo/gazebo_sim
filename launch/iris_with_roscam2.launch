@@ -12,12 +12,11 @@
     <arg name="gui" value="$(arg gui)" />
     <arg name="output" value="$(arg output)" />
   </include>
-  <node name="pcl_manager" pkg="nodelet" type="nodelet" args="manager" output="screen" />
+  <node name="pcl_manager" pkg="nodelet" type="nodelet" args="manager" />
   <node name="rs2base_link_transform"
     pkg="nodelet"
     type="nodelet"
-    args="load pcl/PassThrough pcl_manager"
-    output="screen">
+    args="load pcl/PassThrough pcl_manager">
     <param name="input_frame" value="realsense" />
     <param name="output_frame" value="map" />
     <param name="filter_limit_max" value="1000" />
@@ -91,13 +90,19 @@
     <node pkg="gazebo_sim" type="start_image_qa.sh" name="image_qa">
     </node>
 
-    <include file="$(find api_routes)/launch/api_routes_real.launch" />
+    <include file="$(find api_routes)/launch/api_routes_real.launch">
+      <arg name="fcu_url" value="tcp://127.0.0.1:5760"  />
+    </include>
+
+    <include file="$(find foxglove_bridge)/launch/foxglove_bridge.launch">
+      <arg name="port" value="8765" />
+    </include>
 
     <include file="$(find mqtt_task_bridge)/launch/mqtt_task_bridge.launch" />
 
     <group ns="$(arg robot_name)">    
         <!-- 3D 点云转换 2D 激光雷达扫描线，驱动 gmapping SLAM 建图 -->
-        <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
+        <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
             <remap from="cloud_in" to="/points"/>
             <remap from="scan" to="/scan"/>
             <rosparam>
@@ -117,24 +122,18 @@
             </rosparam>
         </node>
 
+        <!-- 移除 gmapping：改由 dummy_go2 获取 Gazebo 模型真值并广播 map->odom TF，杜绝雷达点云稀疏引起的 yaw 漂移 -->
+        <!--
         <include file="$(find champ_config)/launch/include/gmapping.launch">
             <arg name="frame_prefix" value="$(arg frame_prefix)"/>
         </include>
+        -->
 
         <!-- Calls navigation stack packages -->
-        <!-- <include file="$(find champ_config)/launch/include/move_base.launch">
-            <arg name="frame_prefix" value="$(arg frame_prefix)"/>
-            <arg name="robot_name"   value="$(arg robot_name)"/>
-        </include> -->
-        <!-- <include file="$(find jie_octomap)/launch/move_base.launch">
-            <arg name="frame_prefix"       value="$(arg frame_prefix)"/>
-            <arg name="robot_name"         value="$(arg robot_name)"/>
-            <arg name="use_rviz"           value="$(arg rviz)"/>
-            <arg name="point_cloud_topic"  value="/points"/>
-        </include> -->
         <include file="$(find jie_octomap)/launch/navigation.launch">
           <arg name="point_cloud_topic"  value="/points"/>
-          <arg name="global_octomap_path" value="" />
+          <!-- <arg name="global_octomap_path" value="" /> -->
+          <arg name="global_octomap_path" value="/home/hggshiwo/catkin_ws/octomap" />
           <arg name="publish_fake_tf" value="false" />
         </include>
     </group>
@@ -142,9 +141,9 @@
   </group>
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_base_link"
-    args="0 0 0 0 0 0 base base_link" output="screen" />
+    args="0 0 0 0 0 0 base base_link" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="realsense2base_link"
-    args="0 0 0 -1.5708 0 -1.5708 base_link realsense " output="screen" />
+    args="0 0 0 -1.5708 0 -1.5708 base_link realsense " />
   <!-- 
   <include file="$(find ros_rtsp)/launch/rtsp_streams.launch">
   </include> -->

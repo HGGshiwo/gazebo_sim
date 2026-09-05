@@ -9,7 +9,7 @@
     <arg name="world_init_x"           default="0.0" /> <!-- X Initial position of the robot in Gazebo World -->
     <arg name="world_init_y"           default="0.0" /> <!-- Y Initial position of the robot in Gazebo World -->
     <arg name="world_init_z"           default="0.4" />
-    <arg name="world_init_heading"     default="1.570796" /> <!-- Initial heading of the robot in Gazebo World -->
+    <arg name="world_init_heading"     default="0.0" /> <!-- Initial heading of the robot in Gazebo World (aligned with Gmapping map frame) -->
     <arg name="respawn_controller"     default="false"/>
     <arg name="enable_contact_sensor"  default="false" />
     <arg name="init_posture"           default="sit" />
